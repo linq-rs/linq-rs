@@ -10,6 +10,7 @@ anyhow = "1.0.57"
 proc-macro2 = "^1"
 quote = "^1"
 syn = {version = "^1",features=["full"]}
+serde = {version = "1.0.150",features = ["derive"]}
 
 [lib]
 proc-macro = true
