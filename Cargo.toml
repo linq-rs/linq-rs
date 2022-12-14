@@ -1,0 +1,3 @@
+[workspace]
+members = ["proc_macro","parser","ir"]
+
