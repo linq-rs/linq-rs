@@ -1,7 +1,7 @@
 use proc_macro2::Ident;
-use syn::{parenthesized, parse::Parse, token::Paren, Expr, Lit, Token};
+use syn::{parenthesized, parse::Parse, token::Paren, Lit, Token};
 
-use super::{keyword, Value};
+use super::keyword;
 
 pub enum CondOp {
     Eq(Token![=]),

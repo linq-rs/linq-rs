@@ -4,9 +4,6 @@ pub use select::*;
 mod keyword;
 pub use keyword::*;
 
-mod from;
-pub use from::*;
-
 mod cond;
 pub use cond::*;
 
@@ -16,8 +13,8 @@ pub use limits::*;
 mod order;
 pub use order::*;
 
-mod value;
-pub use value::*;
+mod variant;
+pub use variant::*;
 
 use syn::parse::Parse;
 

@@ -2,7 +2,6 @@ use proc_macro2::Ident;
 use syn::Error;
 use syn::{parse::Parse, Token};
 
-use super::from::From;
 use super::{keyword, Cond, Limits, Order};
 
 pub struct SelectColumn {
@@ -15,6 +14,8 @@ impl Parse for SelectColumn {
         let col_name: Ident = input.parse()?;
 
         let aliase = if input.lookahead1().peek(Token![as]) {
+            let _: Token![as] = input.parse()?;
+
             Some(input.parse::<Ident>()?)
         } else {
             None
@@ -26,7 +27,6 @@ impl Parse for SelectColumn {
 
 pub struct Select {
     pub cols: Option<Vec<SelectColumn>>,
-    pub from: From,
     pub cond: Option<Cond>,
     pub limits: Option<Limits>,
     pub order: Option<Order>,
@@ -51,8 +51,6 @@ impl Parse for Select {
             }
             Some(cols)
         };
-
-        let from: From = input.parse()?;
 
         let mut cond = None;
         let mut limits = None;
@@ -83,7 +81,6 @@ impl Parse for Select {
 
         Ok(Select {
             cols,
-            from,
             cond,
             limits,
             order,

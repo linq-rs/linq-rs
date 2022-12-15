@@ -1,4 +1,4 @@
-use syn::{custom_keyword, custom_punctuation};
+use syn::custom_keyword;
 
 custom_keyword!(select);
 custom_keyword!(update);
@@ -9,7 +9,9 @@ custom_keyword!(create);
 custom_keyword!(alter);
 custom_keyword!(dropo);
 custom_keyword!(order);
+custom_keyword!(by);
 custom_keyword!(limit);
+custom_keyword!(offset);
 custom_keyword!(like);
 custom_keyword!(and);
 custom_keyword!(or);

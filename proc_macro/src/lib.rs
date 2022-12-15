@@ -7,7 +7,7 @@ use rql::*;
 
 #[proc_macro]
 pub fn rql(ident: TokenStream) -> TokenStream {
-    let ast = parse_macro_input!(ident as RQL);
+    let _ = parse_macro_input!(ident as RQL);
 
     // eprintln!("{:?}", ast);
 
