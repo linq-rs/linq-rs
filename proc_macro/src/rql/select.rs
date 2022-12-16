@@ -1,27 +1,52 @@
-use proc_macro2::Ident;
+use quote::quote;
 use syn::Error;
 use syn::{parse::Parse, Token};
 
-use super::{keyword, Cond, Limits, Order};
+use crate::gen::CodeGen;
+
+use super::{keyword, Cond, Limits, Order, Variant};
 
 pub struct SelectColumn {
-    pub col_name: Ident,
-    pub aliase: Option<Ident>,
+    pub col_name: Variant,
+    pub aliase: Option<Variant>,
 }
 
 impl Parse for SelectColumn {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let col_name: Ident = input.parse()?;
+        let col_name: Variant = input.parse()?;
 
         let aliase = if input.lookahead1().peek(Token![as]) {
             let _: Token![as] = input.parse()?;
 
-            Some(input.parse::<Ident>()?)
+            Some(input.parse::<Variant>()?)
         } else {
             None
         };
 
         Ok(SelectColumn { col_name, aliase })
+    }
+}
+
+impl CodeGen for SelectColumn {
+    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
+        let col_name = self.col_name.gen_ir_code()?;
+
+        if let Some(aliase) = &self.aliase {
+            let aliase = aliase.gen_ir_code()?;
+            Ok(quote! {
+                ::linq_rs_ir::SelectColumn {
+                    col_name: #col_name,
+                    aliase: Some(#aliase)
+                }
+            })
+        } else {
+            Ok(quote! {
+                ::linq_rs_ir::SelectColumn {
+                    col_name: #col_name,
+                    aliase: None
+                }
+            })
+        }
     }
 }
 
@@ -45,9 +70,12 @@ impl Parse for Select {
             loop {
                 cols.push(input.parse()?);
 
-                if !input.lookahead1().peek(Token![,]) {
-                    break;
+                if input.lookahead1().peek(Token![,]) {
+                    let _: Token![,] = input.parse()?;
+                    continue;
                 }
+
+                break;
             }
             Some(cols)
         };
@@ -84,6 +112,27 @@ impl Parse for Select {
             cond,
             limits,
             order,
+        })
+    }
+}
+
+impl CodeGen for Select {
+    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
+        let mut irs = vec![];
+
+        if let Some(cols) = &self.cols {
+            for col in cols {
+                irs.push(col.gen_ir_code()?);
+            }
+        }
+
+        Ok(quote! {
+            ::linq_rs_ir::Selecter {
+                cols: vec![#(#irs,)*],
+                cond: None,
+                order: None,
+                limits: None,
+            }
         })
     }
 }

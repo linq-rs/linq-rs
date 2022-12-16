@@ -1,15 +1,19 @@
 use proc_macro::TokenStream;
-use quote::quote;
 use syn::parse_macro_input;
 
 mod rql;
 use rql::*;
 
+mod gen;
+use gen::*;
+
 #[proc_macro]
 pub fn rql(ident: TokenStream) -> TokenStream {
-    let _ = parse_macro_input!(ident as RQL);
+    let ast = parse_macro_input!(ident as RQL);
 
-    // eprintln!("{:?}", ast);
+    let token_stream = ast.gen_ir_code().expect("gen ir code");
 
-    quote!().into()
+    eprintln!("======== {}", token_stream.to_string());
+
+    token_stream.into()
 }

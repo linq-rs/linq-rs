@@ -12,5 +12,9 @@ quote = "^1"
 syn = {version = "^1",features=["full"]}
 serde = {version = "1.0.150",features = ["derive"]}
 
+[dev-dependencies]
+linq_rs_ir = {path = "../ir"}
+
 [lib]
 proc-macro = true
+

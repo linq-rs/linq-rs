@@ -20,7 +20,6 @@ pub struct Insert<'a> {
 }
 
 pub struct Selecter<'a> {
-    pub from: From<'a>,
     pub cols: Vec<SelectColumn<'a>>,
     pub cond: Option<Condition<'a>>,
     pub order: Option<Order<'a>>,

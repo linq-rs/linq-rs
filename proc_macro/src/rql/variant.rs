@@ -1,6 +1,8 @@
 use proc_macro2::Ident;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::{parse::Parse, ExprClosure, Token};
+
+use crate::gen::CodeGen;
 
 #[allow(dead_code)]
 pub enum Variant {
@@ -22,5 +24,22 @@ impl Parse for Variant {
         let ident: Ident = input.parse()?;
 
         Ok(Variant::Ident(ident))
+    }
+}
+
+impl CodeGen for Variant {
+    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
+        match self {
+            Self::Ident(ident) => {
+                let name = ident.to_string();
+
+                Ok(quote! {
+                    #name
+                })
+            }
+            Self::Closure(expr) => Ok(quote! {
+                (#expr)()
+            }),
+        }
     }
 }

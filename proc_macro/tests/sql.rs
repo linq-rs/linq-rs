@@ -25,7 +25,7 @@ fn test_select() {
     };
 
     rql! {
-        select name as name_
+        select name as || format!("{}",order_by) , id
         where id = 100 and (name = "hello" or name = "test")
     };
 

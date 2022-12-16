@@ -18,6 +18,8 @@ pub use variant::*;
 
 use syn::parse::Parse;
 
+use crate::CodeGen;
+
 pub enum RQL {
     Select(Select),
 }
@@ -31,5 +33,13 @@ impl Parse for RQL {
         }
 
         unimplemented!()
+    }
+}
+
+impl CodeGen for RQL {
+    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
+        match self {
+            Self::Select(select) => return select.gen_ir_code(),
+        }
     }
 }
