@@ -1,3 +1,5 @@
+use crate::Variant;
+
 use super::value::IRValue;
 
 /// SQL dml language ir enum
@@ -15,7 +17,7 @@ pub struct Deleter<'a> {
 
 pub struct Insert<'a> {
     pub table_name: &'a str,
-    pub cols: Vec<&'a str>,
+    pub cols: Vec<Variant<&'a str, String>>,
     pub values: Vec<IRValue>,
 }
 
@@ -41,9 +43,9 @@ pub struct From<'a> {
 /// Query stmt col ir
 pub struct SelectColumn<'a> {
     /// Table column name
-    pub col_name: &'a str,
+    pub col_name: Variant<&'a str, String>,
     /// More readable temporary column name
-    pub aliase: Option<&'a str>,
+    pub aliase: Option<Variant<&'a str, String>>,
 }
 
 pub enum Condition<'a> {
