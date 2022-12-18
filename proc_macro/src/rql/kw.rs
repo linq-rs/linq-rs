@@ -1,0 +1,6 @@
+use syn::custom_keyword;
+
+custom_keyword!(select);
+custom_keyword!(like);
+custom_keyword!(and);
+custom_keyword!(or);

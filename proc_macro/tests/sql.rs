@@ -1,45 +1,43 @@
 use linq_proc_macro::*;
-use linq_rs_ir::Variant;
+use linq_rs_ir::dml::SelectColumns;
 
 #[async_std::test]
 async fn test_select() {
-    let order_by = vec!["name".to_owned()];
+    let id_col_name = "id";
+    let no_col_name = "user_social_no";
 
-    rql! {
-        select *
-        where id = 100 and (name = "hello" or name = "test")
-        order by name
-        limit 10 offset 3
+    let qir = rql! {
+        select name,#id_col_name, no as #no_col_name
     };
-
-    let selecter = rql! {
-        select name as #[ async { format!("col_{}",order_by[0]) } ]
-        where id = 100 and (name = "hello" or name = "test")
-        order by name
-        limit 10
-    };
-
-    assert_eq!(selecter.cols.len(), 1);
-
-    assert_eq!(selecter.cols[0].col_name, Variant::Constant("name"));
 
     assert_eq!(
-        selecter.cols[0].aliase,
-        Some(Variant::Eval("col_name".to_owned()))
+        qir.cols,
+        SelectColumns::NamedColumns(vec![
+            "name".into(),
+            "id".into(),
+            ("no", "user_social_no").into()
+        ])
     );
 
-    rql! {
-        select *
-        where id = 100 and (name = "hello" or name = "test")
-        order by name
+    let cols = vec!["name", "id"];
+
+    let qir = rql! {
+        select #(cols)*
     };
 
-    let _ql = rql! {
-        select name as #[ order_by[0].as_str() ] , id
-        where id = 100 and (name = "hello" or name = "test")
+    assert_eq!(
+        qir.cols,
+        SelectColumns::NamedColumns(vec!["name".into(), "id".into()])
+    );
+
+    let cols = vec![("name", "user_name"), ("id", "user_id")];
+
+    let qir = rql! {
+        select #(cols)*
     };
 
-    let _ql = rql! {
-        select *
-    };
+    assert_eq!(
+        qir.cols,
+        SelectColumns::NamedColumns(vec![("name", "user_name").into(), ("id", "user_id").into()])
+    );
 }

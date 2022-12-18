@@ -13,7 +13,7 @@ pub fn rql(ident: TokenStream) -> TokenStream {
 
     let token_stream = ast.gen_ir_code().expect("gen ir code");
 
-    eprintln!("{}", token_stream.to_string());
+    // eprintln!("gen: {}", token_stream.to_string());
 
     token_stream.into()
 }

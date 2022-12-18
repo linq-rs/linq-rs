@@ -1,3 +1,16 @@
+mod select;
+pub use select::*;
+
+mod kw;
+pub use kw::*;
+
+mod variant;
+pub use variant::*;
+
+mod cond;
+
+pub use cond::*;
+
 use syn::parse::Parse;
 
 use crate::CodeGen;
@@ -10,7 +23,7 @@ impl Parse for RQL {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
 
-        if lookahead.peek(keyword::select) {
+        if lookahead.peek(select) {
             return Ok(RQL::Select(input.parse::<Select>()?));
         }
 
