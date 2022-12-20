@@ -3,10 +3,11 @@ use syn::{parenthesized, parse::Parse, Expr, Token};
 
 use crate::gen::CodeGen;
 
-use super::{kw, Variant};
+use super::{cond, kw, Variant};
 
 pub struct Select {
     cols: Columns,
+    cond: Option<cond::CondExpr>,
 }
 
 impl Parse for Select {
@@ -15,7 +16,15 @@ impl Parse for Select {
 
         let cols: Columns = input.parse()?;
 
-        Ok(Select { cols })
+        let cond = if input.lookahead1().peek(Token!(where)) {
+            let _: Token!(where) = input.parse()?;
+
+            Some(input.parse()?)
+        } else {
+            None
+        };
+
+        Ok(Select { cols, cond })
     }
 }
 
@@ -23,9 +32,17 @@ impl CodeGen for Select {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         let cols = self.cols.gen_ir_code()?;
 
+        let cond = if let Some(cond) = &self.cond {
+            let token_stream = cond.gen_ir_code()?;
+            quote!(Some(#token_stream))
+        } else {
+            quote!(None)
+        };
+
         Ok(quote! {
             ::linq_rs_ir::dml::Selecter {
                 cols: #cols,
+                cond: #cond,
             }
         })
     }

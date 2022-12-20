@@ -6,6 +6,7 @@ use crate::gen::CodeGen;
 use super::{kw, Variant};
 
 enum Op {
+    NotEq(Token!(!=)),
     Eq(Token!(=)),
     Gt(Token!(>)),
     Lt(Token!(<)),
@@ -21,20 +22,22 @@ impl Parse for Op {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
 
-        if lookahead.peek(Token!(=)) {
+        if lookahead.peek(Token!(!=)) {
+            Ok(Op::NotEq(input.parse()?))
+        } else if lookahead.peek(Token!(>=)) {
+            Ok(Op::Gte(input.parse()?))
+        } else if lookahead.peek(Token!(<=)) {
+            Ok(Op::Lte(input.parse()?))
+        } else if lookahead.peek(Token!(=)) {
             Ok(Op::Eq(input.parse()?))
         } else if lookahead.peek(Token!(>)) {
             Ok(Op::Gt(input.parse()?))
         } else if lookahead.peek(Token!(<)) {
             Ok(Op::Lt(input.parse()?))
-        } else if lookahead.peek(Token!(>=)) {
-            Ok(Op::Gte(input.parse()?))
-        } else if lookahead.peek(Token!(<=)) {
-            Ok(Op::Lte(input.parse()?))
         } else if lookahead.peek(Token!(in)) {
-            Ok(Op::Like(input.parse()?))
-        } else if lookahead.peek(kw::like) {
             Ok(Op::In(input.parse()?))
+        } else if lookahead.peek(kw::like) {
+            Ok(Op::Like(input.parse()?))
         } else if lookahead.peek(kw::and) {
             Ok(Op::And(input.parse()?))
         } else if lookahead.peek(kw::or) {
@@ -51,6 +54,7 @@ impl Parse for Op {
 impl CodeGen for Op {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         match self {
+            Self::NotEq(_) => Ok(quote!(::linq_rs_ir::dml::CondOp::NotEq)),
             Self::Eq(_) => Ok(quote!(::linq_rs_ir::dml::CondOp::Eq)),
             Self::Gt(_) => Ok(quote!(::linq_rs_ir::dml::CondOp::Gt)),
             Self::Lt(_) => Ok(quote!(::linq_rs_ir::dml::CondOp::Lt)),
@@ -65,19 +69,88 @@ impl CodeGen for Op {
 }
 
 enum CondParameter {
+    VariantList(Vec<Variant>),
     Variant(Variant),
     CondExpr(Box<CondExpr>),
 }
 
 impl Parse for CondParameter {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        Ok(CondParameter::Variant(input.parse()?))
+        if input.lookahead1().peek(Paren) {
+            let mut variants = vec![];
+
+            let content;
+
+            parenthesized!(content in input);
+
+            loop {
+                variants.push(content.parse()?);
+
+                if !content.lookahead1().peek(Token!(,)) {
+                    break;
+                }
+
+                let _: Token!(,) = content.parse()?;
+            }
+
+            Ok(CondParameter::VariantList(variants))
+        } else {
+            Ok(CondParameter::Variant(input.parse()?))
+        }
     }
 }
 
 impl CodeGen for CondParameter {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        unimplemented!()
+        match self {
+            CondParameter::CondExpr(expr) => {
+                let expr = expr.gen_ir_code()?;
+
+                Ok(quote! {
+                    ::linq_rs_ir::dml::CondParam::CondExpr(Box::new(#expr ))
+                })
+            }
+            CondParameter::Variant(v) => match v {
+                Variant::Expr(expr) => Ok(quote! {
+                    ::linq_rs_ir::dml::CondParam::Variant(#expr.into())
+                }),
+                Variant::Ident(ident) => {
+                    let v = format!("{}", ident);
+                    Ok(quote! {
+                        ::linq_rs_ir::dml::CondParam::Variant(#v.into())
+                    })
+                }
+                Variant::Lit(lit) => Ok(quote! {
+                    ::linq_rs_ir::dml::CondParam::Variant(#lit.into())
+                }),
+            },
+            CondParameter::VariantList(variants) => {
+                let mut token_streams = vec![];
+
+                for v in variants {
+                    let stream = match v {
+                        Variant::Expr(expr) => quote! {
+                            #expr.into()
+                        },
+                        Variant::Ident(ident) => {
+                            let v = format!("{}", ident);
+                            quote! {
+                                #v.into()
+                            }
+                        }
+                        Variant::Lit(lit) => quote! {
+                            #lit.into()
+                        },
+                    };
+
+                    token_streams.push(stream);
+                }
+
+                Ok(quote! {
+                    ::linq_rs_ir::dml::CondParam::VariantList(vec![#(#token_streams,)*])
+                })
+            }
+        }
     }
 }
 
@@ -99,6 +172,14 @@ impl Parse for CondExpr {
             let lhs: CondParameter = input.parse()?;
 
             let op: Op = input.parse()?;
+
+            if let Op::In(_) = op {
+                let span = input.span();
+
+                if !input.lookahead1().peek(Paren) {
+                    return Err(syn::Error::new(span, "expect ("));
+                }
+            }
 
             let rhs: CondParameter = input.parse()?;
 
@@ -124,6 +205,16 @@ impl Parse for CondExpr {
 
 impl CodeGen for CondExpr {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        unimplemented!()
+        let op_stream = self.op.gen_ir_code()?;
+        let lhs_stream = self.lhs.gen_ir_code()?;
+        let rhs_stream = self.rhs.gen_ir_code()?;
+
+        Ok(quote! {
+            ::linq_rs_ir::dml::CondExpr {
+                op: #op_stream,
+                lhs:#lhs_stream,
+                rhs:#rhs_stream
+            }
+        })
     }
 }
