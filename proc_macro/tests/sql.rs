@@ -1,5 +1,5 @@
 use linq_proc_macro::*;
-use linq_rs_ir::dml::{CondExpr, CondOp, CondParam, Limit, OrderBy, SelectColumns};
+use linq_rs_ir::{CondExpr, CondOp, CondParam, Limit, OrderBy, SelectColumns};
 
 #[async_std::test]
 async fn test_select() {

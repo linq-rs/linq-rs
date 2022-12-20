@@ -54,7 +54,7 @@ impl CodeGen for Select {
         };
 
         Ok(quote! {
-            ::linq_rs_ir::dml::Selecter {
+            ::linq_rs_ir::Selecter {
                 cols: #cols,
                 cond: #cond,
                 limit: #limit,
@@ -110,7 +110,7 @@ impl CodeGen for SelectColumns {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         match self {
             Self::All => Ok(quote! {
-                ::linq_rs_ir::dml::SelectColumns::All
+                ::linq_rs_ir::SelectColumns::All
             }),
             Self::Expr(expr) => Ok(quote!(#expr.into())),
 
@@ -122,7 +122,7 @@ impl CodeGen for SelectColumns {
                 }
 
                 Ok(quote! {
-                    ::linq_rs_ir::dml::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
+                    ::linq_rs_ir::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
                 })
             }
         }
@@ -164,7 +164,7 @@ impl CodeGen for NamedColumn {
             quote!(None)
         };
         Ok(quote! {
-            ::linq_rs_ir::dml::SelectNamedColumn {
+            ::linq_rs_ir::SelectNamedColumn {
                 name: #name,
                 aliase: #aliase
             }
