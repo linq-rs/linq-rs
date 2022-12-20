@@ -16,6 +16,8 @@ impl Parse for Variant {
 
         if lookahead.peek(Token![#]) {
             let _: Token!(#) = input.parse()?;
+            // let content;
+            // bracketed!(content in input);
             Ok(Variant::Expr(input.parse()?))
         } else if lookahead.peek(Lit) {
             Ok(Variant::Lit(input.parse()?))

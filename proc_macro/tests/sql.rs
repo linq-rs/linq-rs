@@ -1,5 +1,5 @@
 use linq_proc_macro::*;
-use linq_rs_ir::dml::{CondExpr, CondOp, CondParam, SelectColumns};
+use linq_rs_ir::dml::{CondExpr, CondOp, CondParam, Limit, OrderBy, SelectColumns};
 
 #[async_std::test]
 async fn test_select() {
@@ -45,7 +45,7 @@ async fn test_select() {
 #[async_std::test]
 async fn test_cond() {
     let qir = rql! {
-        select * where id != 100 and (name = "hello" or name = "world")
+        where id != 100 and (name = "hello" or name = "world") select *
     };
 
     assert_eq!(
@@ -74,7 +74,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * where id >= 100
+         where id >= 100 select *
     };
 
     assert_eq!(
@@ -87,7 +87,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * where id <= 100
+        where id <= 100 select *
     };
 
     assert_eq!(
@@ -100,7 +100,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * where id > 100
+         where id > 100 select *
     };
 
     assert_eq!(
@@ -113,7 +113,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * where id < 100
+        where id < 100 select *
     };
 
     assert_eq!(
@@ -126,7 +126,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * where id in (100,200,300)
+       where id in (100,200,300) select *
     };
 
     assert_eq!(
@@ -139,7 +139,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * where name like "%hello%"
+         where name like "%hello%" select *
     };
 
     assert_eq!(
@@ -148,6 +148,120 @@ async fn test_cond() {
             op: CondOp::Like,
             lhs: CondParam::Variant("name".into()),
             rhs: CondParam::Variant("%hello%".into()),
+        })
+    );
+}
+
+#[test]
+fn test_limit() {
+    let limit = 10;
+    let offset = 20;
+
+    let qir = rql! {
+        limit #limit offset #offset select *
+    };
+
+    assert_eq!(
+        qir.limit,
+        Some(Limit {
+            count: 10,
+            offset: Some(20)
+        })
+    );
+}
+
+#[test]
+fn test_order() {
+    let col_name = "hello";
+
+    let qir = rql! {
+        order by #col_name select *
+    };
+
+    assert_eq!(
+        qir.order_by,
+        Some(OrderBy {
+            col_name: "hello",
+            desc: false
+        })
+    );
+
+    let qir = rql! {
+        order by #col_name asc select *
+    };
+
+    assert_eq!(
+        qir.order_by,
+        Some(OrderBy {
+            col_name: "hello",
+            desc: false
+        })
+    );
+
+    let qir = rql! {
+        order by #col_name desc select *
+    };
+
+    assert_eq!(
+        qir.order_by,
+        Some(OrderBy {
+            col_name: "hello",
+            desc: true
+        })
+    );
+
+    let desc = true;
+
+    let qir = rql! {
+        order by #col_name #desc select *
+    };
+
+    assert_eq!(
+        qir.order_by,
+        Some(OrderBy {
+            col_name: "hello",
+            desc: true
+        })
+    );
+}
+
+#[test]
+fn test_select_where_order_limits() {
+    let cols = vec!["name", "id"];
+
+    let id = 100;
+
+    let qir = rql! {
+        where id = #id order by name desc limit 10 offset 2 select #(cols)*
+    };
+
+    assert_eq!(
+        qir.cols,
+        SelectColumns::NamedColumns(vec!["name".into(), "id".into()])
+    );
+
+    assert_eq!(
+        qir.limit,
+        Some(Limit {
+            count: 10,
+            offset: Some(2)
+        })
+    );
+
+    assert_eq!(
+        qir.cond,
+        Some(CondExpr {
+            op: CondOp::Eq,
+            lhs: CondParam::Variant("id".into()),
+            rhs: CondParam::Variant(100.into()),
+        })
+    );
+
+    assert_eq!(
+        qir.order_by,
+        Some(OrderBy {
+            col_name: "name",
+            desc: true
         })
     );
 }

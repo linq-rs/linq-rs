@@ -8,3 +8,5 @@ custom_keyword!(limit);
 custom_keyword!(offset);
 custom_keyword!(order);
 custom_keyword!(by);
+custom_keyword!(asc);
+custom_keyword!(desc);

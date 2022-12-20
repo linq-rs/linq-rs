@@ -3,28 +3,28 @@ use syn::{parenthesized, parse::Parse, Expr, Token};
 
 use crate::gen::CodeGen;
 
-use super::{cond, kw, Variant};
+use super::{cond, Limit, OrderBy, Variant};
 
 pub struct Select {
-    cols: Columns,
+    cols: SelectColumns,
     cond: Option<cond::CondExpr>,
+    limit: Option<Limit>,
+    order: Option<OrderBy>,
 }
 
-impl Parse for Select {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::select = input.parse()?;
-
-        let cols: Columns = input.parse()?;
-
-        let cond = if input.lookahead1().peek(Token!(where)) {
-            let _: Token!(where) = input.parse()?;
-
-            Some(input.parse()?)
-        } else {
-            None
-        };
-
-        Ok(Select { cols, cond })
+impl Select {
+    pub fn new(
+        cols: SelectColumns,
+        cond: Option<cond::CondExpr>,
+        limit: Option<Limit>,
+        order: Option<OrderBy>,
+    ) -> Self {
+        Self {
+            cols,
+            cond,
+            limit,
+            order,
+        }
     }
 }
 
@@ -39,27 +39,43 @@ impl CodeGen for Select {
             quote!(None)
         };
 
+        let limit = if let Some(limit) = &self.limit {
+            let token_stream = limit.gen_ir_code()?;
+            quote!(Some(#token_stream))
+        } else {
+            quote!(None)
+        };
+
+        let order = if let Some(order) = &self.order {
+            let token_stream = order.gen_ir_code()?;
+            quote!(Some(#token_stream))
+        } else {
+            quote!(None)
+        };
+
         Ok(quote! {
             ::linq_rs_ir::dml::Selecter {
                 cols: #cols,
                 cond: #cond,
+                limit: #limit,
+                order_by: #order,
             }
         })
     }
 }
 
-enum Columns {
+pub enum SelectColumns {
     All,
     NamedColumns(Vec<NamedColumn>),
     Expr(Expr),
 }
 
-impl Parse for Columns {
+impl Parse for SelectColumns {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![*]) {
             let _: Token![*] = input.parse()?;
-            return Ok(Columns::All);
+            return Ok(SelectColumns::All);
         } else if lookahead.peek(Token![#]) {
             let _: Token![#] = input.parse()?;
             let content;
@@ -69,7 +85,7 @@ impl Parse for Columns {
 
             let _: Token![*] = input.parse()?;
 
-            return Ok(Columns::Expr(expr));
+            return Ok(SelectColumns::Expr(expr));
         } else {
             let mut cols = vec![];
             loop {
@@ -85,12 +101,12 @@ impl Parse for Columns {
                 break;
             }
 
-            return Ok(Columns::NamedColumns(cols));
+            return Ok(SelectColumns::NamedColumns(cols));
         }
     }
 }
 
-impl CodeGen for Columns {
+impl CodeGen for SelectColumns {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         match self {
             Self::All => Ok(quote! {
@@ -113,7 +129,7 @@ impl CodeGen for Columns {
     }
 }
 
-struct NamedColumn {
+pub struct NamedColumn {
     name: Variant,
     aliase: Option<Variant>,
 }
