@@ -331,11 +331,12 @@ fn test_update() {
 
 #[test]
 fn test_delete() {
+    let table_name = "hello";
     let qir = rql! {
-        delete from table  where id = 1
+        delete from #table_name  where id = 1
     };
 
-    assert_eq!(qir.table_name, "table");
+    assert_eq!(qir.table_name, "hello");
 
     assert_eq!(
         qir.cond,
