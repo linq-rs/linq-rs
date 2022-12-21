@@ -12,3 +12,6 @@ pub use insert::*;
 
 mod delete;
 pub use delete::*;
+
+mod cols;
+pub use cols::*;

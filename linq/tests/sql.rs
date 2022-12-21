@@ -266,3 +266,83 @@ fn test_select_where_order_limits() {
         })
     );
 }
+
+#[test]
+fn test_insert() {
+    let qir = rql! {
+        insert into table(name,content)
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(qir.cols, vec!["name", "content"].into());
+
+    let col_name = "name_2".to_owned();
+
+    let qir = rql! {
+        insert into table(#col_name.as_str(),content)
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(qir.cols, vec!["name_2", "content"].into());
+
+    let cols = &["name", "content"];
+
+    let qir = rql! {
+        insert into table #(cols)*
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(qir.cols, vec!["name", "content"].into());
+}
+
+#[test]
+fn test_update() {
+    let qir = rql! {
+        update table(name,content) where id = 1
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(qir.cols, vec!["name", "content"].into());
+
+    let col_name = "name_2".to_owned();
+
+    let qir = rql! {
+        update table(#col_name.as_str(),content) where id = 1
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(qir.cols, vec!["name_2", "content"].into());
+
+    let cols = &["name", "content"];
+
+    let qir = rql! {
+        update table #(cols)* where id = 1
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(qir.cols, vec!["name", "content"].into());
+}
+
+#[test]
+fn test_delete() {
+    let qir = rql! {
+        delete from table  where id = 1
+    };
+
+    assert_eq!(qir.table_name, "table");
+
+    assert_eq!(
+        qir.cond,
+        CondExpr {
+            op: CondOp::Eq,
+            lhs: CondParam::Variant("id".into()),
+            rhs: CondParam::Variant(1.into()),
+        }
+    );
+}
