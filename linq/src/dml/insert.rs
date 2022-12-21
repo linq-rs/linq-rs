@@ -1,4 +1,5 @@
 #[derive(Debug, Clone, PartialEq)]
-pub struct From<'a> {
+pub struct Inserter<'a> {
     pub table_name: &'a str,
+    pub cols: Vec<&'a str>,
 }

@@ -24,7 +24,7 @@ impl CodeGen for From {
         let table_name = self.table_name.gen_ir_code()?;
 
         Ok(quote! {
-            ::linq_rs::dml::From {
+            ::linq_rs::dml::SelectFrom {
                 table_name: #table_name,
             }
         })
