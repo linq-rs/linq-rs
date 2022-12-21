@@ -40,7 +40,7 @@ impl CodeGen for Limit {
         let count = &self.count.gen_ir_code()?;
 
         Ok(quote! {
-            ::linq_rs::Limit {
+            ::linq_rs::dml::Limit {
                 count: #count,
                 offset: #offset_stream,
             }

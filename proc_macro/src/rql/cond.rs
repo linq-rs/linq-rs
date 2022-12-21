@@ -54,16 +54,16 @@ impl Parse for Op {
 impl CodeGen for Op {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         match self {
-            Self::NotEq(_) => Ok(quote!(::linq_rs::CondOp::NotEq)),
-            Self::Eq(_) => Ok(quote!(::linq_rs::CondOp::Eq)),
-            Self::Gt(_) => Ok(quote!(::linq_rs::CondOp::Gt)),
-            Self::Lt(_) => Ok(quote!(::linq_rs::CondOp::Lt)),
-            Self::Gte(_) => Ok(quote!(::linq_rs::CondOp::Gte)),
-            Self::Lte(_) => Ok(quote!(::linq_rs::CondOp::Lte)),
-            Self::Like(_) => Ok(quote!(::linq_rs::CondOp::Like)),
-            Self::In(_) => Ok(quote!(::linq_rs::CondOp::In)),
-            Self::And(_) => Ok(quote!(::linq_rs::CondOp::And)),
-            Self::Or(_) => Ok(quote!(::linq_rs::CondOp::Or)),
+            Self::NotEq(_) => Ok(quote!(::linq_rs::dml::CondOp::NotEq)),
+            Self::Eq(_) => Ok(quote!(::linq_rs::dml::CondOp::Eq)),
+            Self::Gt(_) => Ok(quote!(::linq_rs::dml::CondOp::Gt)),
+            Self::Lt(_) => Ok(quote!(::linq_rs::dml::CondOp::Lt)),
+            Self::Gte(_) => Ok(quote!(::linq_rs::dml::CondOp::Gte)),
+            Self::Lte(_) => Ok(quote!(::linq_rs::dml::CondOp::Lte)),
+            Self::Like(_) => Ok(quote!(::linq_rs::dml::CondOp::Like)),
+            Self::In(_) => Ok(quote!(::linq_rs::dml::CondOp::In)),
+            Self::And(_) => Ok(quote!(::linq_rs::dml::CondOp::And)),
+            Self::Or(_) => Ok(quote!(::linq_rs::dml::CondOp::Or)),
         }
     }
 }
@@ -107,21 +107,21 @@ impl CodeGen for CondParameter {
                 let expr = expr.gen_ir_code()?;
 
                 Ok(quote! {
-                    ::linq_rs::CondParam::CondExpr(Box::new(#expr ))
+                    ::linq_rs::dml::CondParam::CondExpr(Box::new(#expr ))
                 })
             }
             CondParameter::Variant(v) => match v {
                 Variant::Expr(expr) => Ok(quote! {
-                    ::linq_rs::CondParam::Variant(#expr.into())
+                    ::linq_rs::dml::CondParam::Variant(#expr.into())
                 }),
                 Variant::Ident(ident) => {
                     let v = format!("{}", ident);
                     Ok(quote! {
-                        ::linq_rs::CondParam::Variant(#v.into())
+                        ::linq_rs::dml::CondParam::Variant(#v.into())
                     })
                 }
                 Variant::Lit(lit) => Ok(quote! {
-                    ::linq_rs::CondParam::Variant(#lit.into())
+                    ::linq_rs::dml::CondParam::Variant(#lit.into())
                 }),
             },
             CondParameter::VariantList(variants) => {
@@ -147,7 +147,7 @@ impl CodeGen for CondParameter {
                 }
 
                 Ok(quote! {
-                    ::linq_rs::CondParam::VariantList(vec![#(#token_streams,)*])
+                    ::linq_rs::dml::CondParam::VariantList(vec![#(#token_streams,)*])
                 })
             }
         }
@@ -210,7 +210,7 @@ impl CodeGen for CondExpr {
         let rhs_stream = self.rhs.gen_ir_code()?;
 
         Ok(quote! {
-            ::linq_rs::CondExpr {
+            ::linq_rs::dml::CondExpr {
                 op: #op_stream,
                 lhs:#lhs_stream,
                 rhs:#rhs_stream

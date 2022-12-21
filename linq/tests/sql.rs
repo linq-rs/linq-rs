@@ -1,13 +1,14 @@
 use linq_proc_macro::*;
-use linq_rs::*;
+use linq_rs::dml::*;
 
 #[async_std::test]
 async fn test_select() {
     let id_col_name = "id";
     let no_col_name = "user_social_no";
 
-    let qir = rql! {
-        select name,#id_col_name, no as #no_col_name from table
+    let (qir, _) = rqls! {
+        select name,#id_col_name, no as #no_col_name from table;
+        select name,#id_col_name, no as #no_col_name from table;
     };
 
     assert_eq!(
@@ -22,7 +23,7 @@ async fn test_select() {
     let cols = vec!["name", "id"];
 
     let qir = rql! {
-        select #(cols)* from table
+        select #(cols)* from table;
     };
 
     assert_eq!(
@@ -33,7 +34,7 @@ async fn test_select() {
     let cols = vec![("name", "user_name"), ("id", "user_id")];
 
     let qir = rql! {
-        select #(cols)* from table
+        select #(cols)* from table;
     };
 
     assert_eq!(
@@ -45,7 +46,7 @@ async fn test_select() {
 #[async_std::test]
 async fn test_cond() {
     let qir = rql! {
-         select * from table where id != 100 and (name = "hello" or name = "world")
+         select * from table where id != 100 and (name = "hello" or name = "world");
     };
 
     assert_eq!(
@@ -74,7 +75,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id >= 100
+        select * from table where id >= 100;
     };
 
     assert_eq!(
@@ -87,7 +88,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id <= 100
+        select * from table where id <= 100;
     };
 
     assert_eq!(
@@ -100,7 +101,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id > 100
+        select * from table where id > 100;
     };
 
     assert_eq!(
@@ -113,7 +114,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id < 100
+        select * from table where id < 100;
     };
 
     assert_eq!(
@@ -126,7 +127,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-       select * from table where id in (100,200,300)
+       select * from table where id in (100,200,300);
     };
 
     assert_eq!(
@@ -139,7 +140,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where name like "%hello%"
+        select * from table where name like "%hello%";
     };
 
     assert_eq!(
@@ -158,7 +159,7 @@ fn test_limit() {
     let offset = 20;
 
     let qir = rql! {
-        select * from table limit #limit offset #offset
+        select * from table limit #limit offset #offset;
     };
 
     assert_eq!(
@@ -175,7 +176,7 @@ fn test_order() {
     let col_name = "hello";
 
     let qir = rql! {
-        select * from table order by #col_name
+        select * from table order by #col_name;
     };
 
     assert_eq!(
@@ -187,7 +188,7 @@ fn test_order() {
     );
 
     let qir = rql! {
-        select * from table order by #col_name asc
+        select * from table order by #col_name asc;
     };
 
     assert_eq!(
@@ -199,7 +200,7 @@ fn test_order() {
     );
 
     let qir = rql! {
-        select * from table order by #col_name desc
+        select * from table order by #col_name desc;
     };
 
     assert_eq!(
@@ -213,7 +214,7 @@ fn test_order() {
     let desc = true;
 
     let qir = rql! {
-        select * from table order by #col_name #desc
+        select * from table order by #col_name #desc;
     };
 
     assert_eq!(
@@ -232,7 +233,7 @@ fn test_select_where_order_limits() {
     let id = 100;
 
     let qir = rql! {
-        select #(cols)* from table where id = #id order by name desc limit 10 offset 2
+        select #(cols)* from table where id = #id order by name desc limit 10 offset 2;
     };
 
     assert_eq!(

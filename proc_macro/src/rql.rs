@@ -1,4 +1,5 @@
 mod select;
+use quote::quote;
 pub use select::*;
 
 mod kw;
@@ -44,5 +45,35 @@ impl CodeGen for RQL {
         match self {
             Self::Select(select) => return select.gen_ir_code(),
         }
+    }
+}
+
+pub struct RQLs {
+    rqls: Vec<RQL>,
+}
+
+impl Parse for RQLs {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let mut rqls = vec![];
+
+        while !input.is_empty() {
+            rqls.push(input.parse()?);
+        }
+
+        Ok(RQLs { rqls })
+    }
+}
+
+impl CodeGen for RQLs {
+    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
+        let mut rqls = vec![];
+
+        for rql in &self.rqls {
+            rqls.push(rql.gen_ir_code()?);
+        }
+
+        Ok(quote! {
+            (#(#rqls,)*)
+        })
     }
 }

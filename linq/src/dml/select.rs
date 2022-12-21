@@ -1,4 +1,5 @@
-use crate::{CondExpr, From, Limit, OrderBy, SelectColumns, Variant};
+use crate::dml::{CondExpr, From, Limit, OrderBy, SelectColumns};
+use crate::variant::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Selecter<'a> {

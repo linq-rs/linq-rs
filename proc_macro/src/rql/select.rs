@@ -25,27 +25,64 @@ impl Parse for Select {
         let mut limit = None;
         let mut order = None;
 
+        if input.lookahead1().peek(Token!(;)) {
+            let _: Token!(;) = input.parse()?;
+            return Ok(Self {
+                cols,
+                from,
+                cond,
+                limit,
+                order,
+            });
+        }
+
         if input.lookahead1().peek(Token!(where)) {
             let _: Token!(where) = input.parse()?;
 
             cond = Some(input.parse()?);
         }
 
+        if input.lookahead1().peek(Token!(;)) {
+            let _: Token!(;) = input.parse()?;
+            return Ok(Self {
+                cols,
+                from,
+                cond,
+                limit,
+                order,
+            });
+        }
+
         if input.lookahead1().peek(kw::order) {
             order = Some(input.parse()?);
+        }
+
+        if input.lookahead1().peek(Token!(;)) {
+            let _: Token!(;) = input.parse()?;
+            return Ok(Self {
+                cols,
+                from,
+                cond,
+                limit,
+                order,
+            });
         }
 
         if input.lookahead1().peek(kw::limit) {
             limit = Some(input.parse()?);
         }
 
-        Ok(Self {
+        if input.lookahead1().peek(Token!(;)) {
+            let _: Token!(;) = input.parse()?;
+        }
+
+        return Ok(Self {
             cols,
             from,
             cond,
             limit,
             order,
-        })
+        });
     }
 }
 
@@ -77,7 +114,7 @@ impl CodeGen for Select {
         };
 
         Ok(quote! {
-            ::linq_rs::Selecter {
+            ::linq_rs::dml::Selecter {
                 cols: #cols,
                 from: #from,
                 cond: #cond,
@@ -134,7 +171,7 @@ impl CodeGen for SelectColumns {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         match self {
             Self::All => Ok(quote! {
-                ::linq_rs::SelectColumns::All
+                ::linq_rs::dml::SelectColumns::All
             }),
             Self::Expr(expr) => Ok(quote!(#expr.into())),
 
@@ -146,7 +183,7 @@ impl CodeGen for SelectColumns {
                 }
 
                 Ok(quote! {
-                    ::linq_rs::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
+                    ::linq_rs::dml::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
                 })
             }
         }
@@ -188,7 +225,7 @@ impl CodeGen for NamedColumn {
             quote!(None)
         };
         Ok(quote! {
-            ::linq_rs::SelectNamedColumn {
+            ::linq_rs::dml::SelectNamedColumn {
                 name: #name,
                 aliase: #aliase
             }

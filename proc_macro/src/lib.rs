@@ -17,3 +17,12 @@ pub fn rql(ident: TokenStream) -> TokenStream {
 
     token_stream.into()
 }
+
+#[proc_macro]
+pub fn rqls(ident: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(ident as RQLs);
+
+    let token_stream = ast.gen_ir_code().expect("gen ir code");
+
+    token_stream.into()
+}
