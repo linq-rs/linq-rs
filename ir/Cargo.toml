@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.57"
 log = "0.4.16"
+linq_proc_macro = {path = "../proc_macro"}
 
 [dev-dependencies]
 dotenv = "0.15.0"

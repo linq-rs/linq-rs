@@ -12,9 +12,6 @@ quote = "^1"
 syn = {version = "^1",features=["full"]}
 serde = {version = "1.0.150",features = ["derive"]}
 
-[dev-dependencies]
-linq_rs_ir = {path = "../ir"}
-async-std = {version = "1.11.0", features = ["attributes", "default"]}
 
 [lib]
 proc-macro = true

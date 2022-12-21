@@ -16,3 +16,5 @@ pub use order::*;
 mod dml;
 
 pub use dml::*;
+
+pub use linq_proc_macro::*;
