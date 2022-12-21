@@ -10,3 +10,4 @@ custom_keyword!(order);
 custom_keyword!(by);
 custom_keyword!(asc);
 custom_keyword!(desc);
+custom_keyword!(from);

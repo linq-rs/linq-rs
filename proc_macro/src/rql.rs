@@ -16,7 +16,10 @@ pub use limit::*;
 mod order;
 pub use order::*;
 
-use syn::{parse::Parse, Token};
+mod from;
+pub use from::*;
+
+use syn::parse::Parse;
 
 use crate::CodeGen;
 
@@ -26,46 +29,13 @@ pub enum RQL {
 
 impl Parse for RQL {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let mut cond = None;
-        let mut limit = None;
-        let mut order = None;
+        let lookahead = input.lookahead1();
 
-        loop {
-            let lookahead = input.lookahead1();
-
-            if lookahead.peek(Token!(where)) {
-                if cond.is_some() {
-                    return Err(syn::Error::new(input.span(), "twice where clause"));
-                }
-
-                let _: Token!(where) = input.parse()?;
-
-                cond = Some(input.parse()?);
-            } else if lookahead.peek(kw::limit) {
-                if limit.is_some() {
-                    return Err(syn::Error::new(input.span(), "twice limit clause"));
-                }
-
-                limit = Some(input.parse()?);
-            } else if lookahead.peek(kw::order) {
-                if order.is_some() {
-                    return Err(syn::Error::new(input.span(), "twice order clause"));
-                }
-
-                order = Some(input.parse()?);
-            } else if lookahead.peek(kw::select) {
-                let _: kw::select = input.parse()?;
-
-                let cols = input.parse()?;
-
-                return Ok(RQL::Select(Select::new(cols, cond, limit, order)));
-            } else {
-                return Err(syn::Error::new(
-                    input.span(),
-                    "Expect where/order/limit/... keyword",
-                ));
-            }
+        if lookahead.peek(kw::select) {
+            return Ok(RQL::Select(input.parse()?));
         }
+
+        unimplemented!()
     }
 }
 

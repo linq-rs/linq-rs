@@ -48,7 +48,7 @@ impl CodeGen for OrderBy {
         };
 
         Ok(quote! {
-            ::linq_rs_ir::OrderBy {
+            ::linq_rs::OrderBy {
                 col_name: #col_name,
                 desc: #order,
             }

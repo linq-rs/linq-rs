@@ -3,34 +3,57 @@ use syn::{parenthesized, parse::Parse, Expr, Token};
 
 use crate::gen::CodeGen;
 
-use super::{cond, Limit, OrderBy, Variant};
+use super::{cond, kw, From, Limit, OrderBy, Variant};
 
 pub struct Select {
     cols: SelectColumns,
+    from: From,
     cond: Option<cond::CondExpr>,
     limit: Option<Limit>,
     order: Option<OrderBy>,
 }
 
-impl Select {
-    pub fn new(
-        cols: SelectColumns,
-        cond: Option<cond::CondExpr>,
-        limit: Option<Limit>,
-        order: Option<OrderBy>,
-    ) -> Self {
-        Self {
+impl Parse for Select {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let _: kw::select = input.parse()?;
+
+        let cols: SelectColumns = input.parse()?;
+
+        let from: From = input.parse()?;
+
+        let mut cond = None;
+        let mut limit = None;
+        let mut order = None;
+
+        if input.lookahead1().peek(Token!(where)) {
+            let _: Token!(where) = input.parse()?;
+
+            cond = Some(input.parse()?);
+        }
+
+        if input.lookahead1().peek(kw::order) {
+            order = Some(input.parse()?);
+        }
+
+        if input.lookahead1().peek(kw::limit) {
+            limit = Some(input.parse()?);
+        }
+
+        Ok(Self {
             cols,
+            from,
             cond,
             limit,
             order,
-        }
+        })
     }
 }
 
 impl CodeGen for Select {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         let cols = self.cols.gen_ir_code()?;
+
+        let from = self.from.gen_ir_code()?;
 
         let cond = if let Some(cond) = &self.cond {
             let token_stream = cond.gen_ir_code()?;
@@ -54,8 +77,9 @@ impl CodeGen for Select {
         };
 
         Ok(quote! {
-            ::linq_rs_ir::Selecter {
+            ::linq_rs::Selecter {
                 cols: #cols,
+                from: #from,
                 cond: #cond,
                 limit: #limit,
                 order_by: #order,
@@ -110,7 +134,7 @@ impl CodeGen for SelectColumns {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         match self {
             Self::All => Ok(quote! {
-                ::linq_rs_ir::SelectColumns::All
+                ::linq_rs::SelectColumns::All
             }),
             Self::Expr(expr) => Ok(quote!(#expr.into())),
 
@@ -122,7 +146,7 @@ impl CodeGen for SelectColumns {
                 }
 
                 Ok(quote! {
-                    ::linq_rs_ir::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
+                    ::linq_rs::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
                 })
             }
         }
@@ -164,7 +188,7 @@ impl CodeGen for NamedColumn {
             quote!(None)
         };
         Ok(quote! {
-            ::linq_rs_ir::SelectNamedColumn {
+            ::linq_rs::SelectNamedColumn {
                 name: #name,
                 aliase: #aliase
             }
