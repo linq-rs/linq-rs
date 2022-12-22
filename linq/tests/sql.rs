@@ -7,8 +7,8 @@ async fn test_select() {
     let no_col_name = "user_social_no";
 
     let (qir, _) = rqls! {
-        select name,#id_col_name, no as #no_col_name from table;
-        select name,#id_col_name, no as #no_col_name from table;
+        SELECT name,#id_col_name, no AS #no_col_name FROM table;
+        SELECT name,#id_col_name, no AS #no_col_name FROM table;
     };
 
     assert_eq!(
@@ -23,7 +23,7 @@ async fn test_select() {
     let cols = vec!["name", "id"];
 
     let qir = rql! {
-        select #(cols)* from table;
+        SELECT #(cols)* FROM table;
     };
 
     assert_eq!(
@@ -34,7 +34,7 @@ async fn test_select() {
     let cols = vec![("name", "user_name"), ("id", "user_id")];
 
     let qir = rql! {
-        select #(cols)* from table;
+        SELECT #(cols)* FROM table;
     };
 
     assert_eq!(
@@ -46,7 +46,7 @@ async fn test_select() {
 #[async_std::test]
 async fn test_cond() {
     let qir = rql! {
-         select * from table where id != 100 and (name = "hello" or name = "world");
+         SELECT * FROM table WHERE id != 100 AND (name = "hello" OR name = "world");
     };
 
     assert_eq!(
@@ -75,7 +75,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id >= 100;
+        SELECT * FROM table WHERE id >= 100;
     };
 
     assert_eq!(
@@ -88,7 +88,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id <= 100;
+        SELECT * FROM table WHERE id <= 100;
     };
 
     assert_eq!(
@@ -101,7 +101,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id > 100;
+        SELECT * FROM table WHERE id > 100;
     };
 
     assert_eq!(
@@ -114,7 +114,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where id < 100;
+        SELECT * FROM table WHERE id < 100;
     };
 
     assert_eq!(
@@ -127,7 +127,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-       select * from table where id in (100,200,300);
+       SELECT * FROM table WHERE id in (100,200,300);
     };
 
     assert_eq!(
@@ -140,7 +140,7 @@ async fn test_cond() {
     );
 
     let qir = rql! {
-        select * from table where name like "%hello%";
+        SELECT * FROM table WHERE name LIKE "%hello%";
     };
 
     assert_eq!(
@@ -159,7 +159,7 @@ fn test_limit() {
     let offset = 20;
 
     let qir = rql! {
-        select * from table limit #limit offset #offset;
+        SELECT * FROM table LIMIT #limit OFFSET #offset;
     };
 
     assert_eq!(
@@ -176,7 +176,7 @@ fn test_order() {
     let col_name = "hello";
 
     let qir = rql! {
-        select * from table order by #col_name;
+        SELECT * FROM table ORDER BY #col_name;
     };
 
     assert_eq!(
@@ -188,7 +188,7 @@ fn test_order() {
     );
 
     let qir = rql! {
-        select * from table order by #col_name asc;
+        SELECT * FROM table ORDER BY #col_name ASC;
     };
 
     assert_eq!(
@@ -200,7 +200,7 @@ fn test_order() {
     );
 
     let qir = rql! {
-        select * from table order by #col_name desc;
+        SELECT * FROM table ORDER BY #col_name DESC;
     };
 
     assert_eq!(
@@ -214,7 +214,7 @@ fn test_order() {
     let desc = true;
 
     let qir = rql! {
-        select * from table order by #col_name #desc;
+        SELECT * FROM table ORDER BY #col_name #desc;
     };
 
     assert_eq!(
@@ -233,7 +233,7 @@ fn test_select_where_order_limits() {
     let id = 100;
 
     let qir = rql! {
-        select #(cols)* from table where id = #id order by name desc limit 10 offset 2;
+        SELECT #(cols)* FROM table WHERE id = #id ORDER BY name DESC LIMIT 10 OFFSET 2;
     };
 
     assert_eq!(
@@ -270,7 +270,7 @@ fn test_select_where_order_limits() {
 #[test]
 fn test_insert() {
     let qir = rql! {
-        insert into table(name,content)
+        INSERT INTO table(name,content)
     };
 
     assert_eq!(qir.table_name, "table");
@@ -280,7 +280,7 @@ fn test_insert() {
     let col_name = "name_2".to_owned();
 
     let qir = rql! {
-        insert into table(#col_name.as_str(),content)
+        INSERT INTO table(#col_name.as_str(),content)
     };
 
     assert_eq!(qir.table_name, "table");
@@ -290,7 +290,7 @@ fn test_insert() {
     let cols = &["name", "content"];
 
     let qir = rql! {
-        insert into table #(cols)*
+        INSERT INTO table #(cols)*
     };
 
     assert_eq!(qir.table_name, "table");
@@ -301,7 +301,7 @@ fn test_insert() {
 #[test]
 fn test_update() {
     let qir = rql! {
-        update table(name,content) where id = 1
+        UPDATE table(name,content) WHERE id = 1
     };
 
     assert_eq!(qir.table_name, "table");
@@ -311,7 +311,7 @@ fn test_update() {
     let col_name = "name_2".to_owned();
 
     let qir = rql! {
-        update table(#col_name.as_str(),content) where id = 1
+        UPDATE table(#col_name.as_str(),content) WHERE id = 1
     };
 
     assert_eq!(qir.table_name, "table");
@@ -321,7 +321,7 @@ fn test_update() {
     let cols = &["name", "content"];
 
     let qir = rql! {
-        update table #(cols)* where id = 1
+        UPDATE table #(cols)* WHERE id = 1
     };
 
     assert_eq!(qir.table_name, "table");
@@ -333,7 +333,7 @@ fn test_update() {
 fn test_delete() {
     let table_name = "hello";
     let qir = rql! {
-        delete from #table_name  where id = 1
+        DELETE FROM #table_name  WHERE id = 1
     };
 
     assert_eq!(qir.table_name, "hello");

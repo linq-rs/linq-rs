@@ -12,10 +12,10 @@ enum Op {
     Lt(Token!(<)),
     Gte(Token!(>=)),
     Lte(Token!(<=)),
-    Like(kw::like),
+    Like(kw::LIKE),
     In(Token!(in)),
-    And(kw::and),
-    Or(kw::or),
+    And(kw::AND),
+    Or(kw::OR),
 }
 
 impl Parse for Op {
@@ -36,11 +36,11 @@ impl Parse for Op {
             Ok(Op::Lt(input.parse()?))
         } else if lookahead.peek(Token!(in)) {
             Ok(Op::In(input.parse()?))
-        } else if lookahead.peek(kw::like) {
+        } else if lookahead.peek(kw::LIKE) {
             Ok(Op::Like(input.parse()?))
-        } else if lookahead.peek(kw::and) {
+        } else if lookahead.peek(kw::AND) {
             Ok(Op::And(input.parse()?))
-        } else if lookahead.peek(kw::or) {
+        } else if lookahead.peek(kw::OR) {
             Ok(Op::Or(input.parse()?))
         } else {
             return Err(syn::Error::new(
@@ -188,7 +188,7 @@ impl Parse for CondExpr {
 
         let lookahead = input.lookahead1();
 
-        if lookahead.peek(kw::and) || lookahead.peek(kw::or) {
+        if lookahead.peek(kw::AND) || lookahead.peek(kw::OR) {
             let r_op: Op = input.parse()?;
             let r_rhs: CondExpr = input.parse()?;
 

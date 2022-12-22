@@ -15,7 +15,7 @@ pub struct Select {
 
 impl Parse for Select {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::select = input.parse()?;
+        let _: kw::SELECT = input.parse()?;
 
         let cols: SelectColumns = input.parse()?;
 
@@ -25,55 +25,18 @@ impl Parse for Select {
         let mut limit = None;
         let mut order = None;
 
-        if input.lookahead1().peek(Token!(;)) {
-            let _: Token!(;) = input.parse()?;
-            return Ok(Self {
-                cols,
-                from,
-                cond,
-                limit,
-                order,
-            });
-        }
-
-        if input.lookahead1().peek(Token!(where)) {
-            let _: Token!(where) = input.parse()?;
+        if input.lookahead1().peek(kw::WHERE) {
+            let _: kw::WHERE = input.parse()?;
 
             cond = Some(input.parse()?);
         }
 
-        if input.lookahead1().peek(Token!(;)) {
-            let _: Token!(;) = input.parse()?;
-            return Ok(Self {
-                cols,
-                from,
-                cond,
-                limit,
-                order,
-            });
-        }
-
-        if input.lookahead1().peek(kw::order) {
+        if input.lookahead1().peek(kw::ORDER) {
             order = Some(input.parse()?);
         }
 
-        if input.lookahead1().peek(Token!(;)) {
-            let _: Token!(;) = input.parse()?;
-            return Ok(Self {
-                cols,
-                from,
-                cond,
-                limit,
-                order,
-            });
-        }
-
-        if input.lookahead1().peek(kw::limit) {
+        if input.lookahead1().peek(kw::LIMIT) {
             limit = Some(input.parse()?);
-        }
-
-        if input.lookahead1().peek(Token!(;)) {
-            let _: Token!(;) = input.parse()?;
         }
 
         return Ok(Self {
@@ -199,8 +162,8 @@ impl Parse for NamedColumn {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let name: Variant = input.parse()?;
 
-        let aliase = if input.lookahead1().peek(Token![as]) {
-            let _: Token![as] = input.parse()?;
+        let aliase = if input.lookahead1().peek(kw::AS) {
+            let _: kw::AS = input.parse()?;
 
             let aliase: Variant = input.parse()?;
 

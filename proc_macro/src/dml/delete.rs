@@ -1,5 +1,5 @@
 use quote::quote;
-use syn::{parse::Parse, Token};
+use syn::parse::Parse;
 
 use crate::gen::CodeGen;
 
@@ -12,13 +12,13 @@ pub struct Delete {
 
 impl Parse for Delete {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::delete = input.parse()?;
+        let _: kw::DELETE = input.parse()?;
 
-        let _: kw::from = input.parse()?;
+        let _: kw::FROM = input.parse()?;
 
         let table_name = input.parse()?;
 
-        let _: Token!(where) = input.parse()?;
+        let _: kw::WHERE = input.parse()?;
 
         let cond = input.parse()?;
 

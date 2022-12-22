@@ -22,7 +22,6 @@ impl Parse for Columns {
 
             return Ok(Columns::Expr(content.parse()?));
         } else {
-            eprintln!("{}", input);
             let content;
 
             syn::parenthesized!(content in input);

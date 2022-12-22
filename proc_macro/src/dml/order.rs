@@ -12,16 +12,16 @@ pub struct OrderBy {
 
 impl Parse for OrderBy {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::order = input.parse()?;
-        let _: kw::by = input.parse()?;
+        let _: kw::ORDER = input.parse()?;
+        let _: kw::BY = input.parse()?;
 
         let name: Variant = input.parse()?;
 
-        let order = if input.lookahead1().peek(kw::asc) {
-            let _: kw::asc = input.parse()?;
+        let order = if input.lookahead1().peek(kw::ASC) {
+            let _: kw::ASC = input.parse()?;
             Order::ASC
-        } else if input.lookahead1().peek(kw::desc) {
-            let _: kw::desc = input.parse()?;
+        } else if input.lookahead1().peek(kw::DESC) {
+            let _: kw::DESC = input.parse()?;
             Order::DESC
         } else if input.lookahead1().peek(Token![#]) {
             Order::Variant(input.parse()?)

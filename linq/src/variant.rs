@@ -55,9 +55,13 @@ impl From<Vec<u8>> for Variant {
     }
 }
 
-pub enum DataType {
-    I64,
-    F64,
+pub enum ColumnType {
+    Int,
+    BigInt,
+    Float,
+    Decimal,
     String,
     Bytes,
+    DateTime,
+    Timestamp,
 }

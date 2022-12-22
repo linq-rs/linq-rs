@@ -3,30 +3,31 @@ use syn::parse::Parse;
 
 use crate::gen::CodeGen;
 
-use super::{kw, Variant};
+use super::kw;
+use crate::variant::*;
 
-pub struct From {
+pub struct Truncate {
     table_name: Variant,
 }
 
-impl Parse for From {
+impl Parse for Truncate {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::from = input.parse()?;
+        let _: kw::TRUNCATE = input.parse()?;
+
+        let _: kw::TABLE = input.parse()?;
 
         let table_name: Variant = input.parse()?;
 
-        Ok(From { table_name })
+        Ok(Truncate { table_name })
     }
 }
 
-impl CodeGen for From {
+impl CodeGen for Truncate {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         let table_name = self.table_name.gen_ir_code()?;
 
         Ok(quote! {
-            ::linq_rs::dml::SelectFrom {
-                table_name: #table_name,
-            }
+            ::linq_rs::ddl::DDL::Truncate(#table_name)
         })
     }
 }

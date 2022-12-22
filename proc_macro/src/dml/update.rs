@@ -1,5 +1,5 @@
 use quote::quote;
-use syn::{parse::Parse, Token};
+use syn::parse::Parse;
 
 use crate::gen::CodeGen;
 
@@ -13,13 +13,13 @@ pub struct Update {
 
 impl Parse for Update {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::update = input.parse()?;
+        let _: kw::UPDATE = input.parse()?;
 
         let table_name = input.parse()?;
 
         let cols = input.parse()?;
 
-        let _: Token!(where) = input.parse()?;
+        let _: kw::WHERE = input.parse()?;
 
         let cond = input.parse()?;
 

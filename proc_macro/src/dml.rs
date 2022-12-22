@@ -5,8 +5,7 @@ pub use select::*;
 mod kw;
 pub use kw::*;
 
-mod variant;
-pub use variant::*;
+pub use super::variant::*;
 
 mod cond;
 pub use cond::*;
@@ -32,7 +31,7 @@ pub use cols::*;
 mod delete;
 pub use delete::*;
 
-use syn::parse::Parse;
+use syn::{parse::Parse, Token};
 
 use crate::CodeGen;
 
@@ -47,17 +46,26 @@ impl Parse for RQL {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
 
-        if lookahead.peek(kw::select) {
-            return Ok(RQL::Select(input.parse()?));
-        } else if lookahead.peek(kw::insert) {
-            return Ok(RQL::Insert(input.parse()?));
-        } else if lookahead.peek(kw::update) {
-            return Ok(RQL::Update(input.parse()?));
-        } else if lookahead.peek(kw::delete) {
-            return Ok(RQL::Delete(input.parse()?));
+        let result = if lookahead.peek(kw::SELECT) {
+            RQL::Select(input.parse()?)
+        } else if lookahead.peek(kw::INSERT) {
+            RQL::Insert(input.parse()?)
+        } else if lookahead.peek(kw::UPDATE) {
+            RQL::Update(input.parse()?)
+        } else if lookahead.peek(kw::DELETE) {
+            RQL::Delete(input.parse()?)
+        } else {
+            return Err(syn::Error::new(
+                input.span(),
+                "Expect select/insert/update/delete",
+            ));
+        };
+
+        if input.lookahead1().peek(Token!(;)) {
+            let _: Token!(;) = input.parse()?;
         }
 
-        unimplemented!()
+        Ok(result)
     }
 }
 
