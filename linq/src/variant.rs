@@ -54,3 +54,10 @@ impl From<Vec<u8>> for Variant {
         Variant::Bytes(v)
     }
 }
+
+pub enum DataType {
+    I64,
+    F64,
+    String,
+    Bytes,
+}

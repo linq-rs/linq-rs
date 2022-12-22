@@ -6,3 +6,5 @@ mod exec;
 pub use exec::*;
 
 pub mod dml;
+
+pub mod ddl;
