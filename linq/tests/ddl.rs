@@ -1,8 +1,13 @@
-use linq_rs::*;
+use linq_rs::{
+    ddl::{Column, Constraint, Create, NamedConstraint, DDL},
+    *,
+};
 
 #[test]
 fn test_create_table() {
-    ddl! {
+    let table_name = "User";
+
+    let qirs = ddl! {
         CREATE TABLE User(
             id INT PRIMARY,
             name STRING,
@@ -38,11 +43,47 @@ fn test_create_table() {
         ALTER TABLE Card DROP CONSTRAINT date_unique;
 
         DROP TABLE Card;
-    };
 
-    let table_name = "User";
-
-    ddl! {
         TRUNCATE TABLE #table_name;
     };
+
+    assert_eq!(
+        qirs[0],
+        DDL::Create(Create {
+            table_name: "User",
+            cols: vec![
+                Column {
+                    name: "id",
+                    col_type: ColumnType::Int,
+                    not_null: false,
+                    default_value: None,
+                    primary: Some(false),
+                },
+                Column {
+                    name: "name",
+                    col_type: ColumnType::String,
+                    not_null: false,
+                    default_value: None,
+                    primary: None,
+                },
+                Column {
+                    name: "date",
+                    col_type: ColumnType::DateTime,
+                    not_null: false,
+                    default_value: None,
+                    primary: None,
+                }
+            ],
+            constraints: vec![
+                NamedConstraint {
+                    name: "name_index",
+                    constraint: Constraint::Unique(vec!["name"])
+                },
+                NamedConstraint {
+                    name: "date_index",
+                    constraint: Constraint::Index(vec!["date"])
+                }
+            ]
+        })
+    );
 }

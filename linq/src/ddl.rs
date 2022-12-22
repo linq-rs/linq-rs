@@ -1,5 +1,6 @@
 use crate::{ColumnType, Variant};
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum DDL<'a> {
     Create(Create<'a>),
     Alter(Alter<'a>),
@@ -7,6 +8,7 @@ pub enum DDL<'a> {
     Truncate(&'a str),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Create<'a> {
     /// Create new table name
     pub table_name: &'a str,
@@ -16,6 +18,7 @@ pub struct Create<'a> {
     pub constraints: Vec<NamedConstraint<'a>>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Column<'a> {
     pub name: &'a str,
     pub col_type: ColumnType,
@@ -24,11 +27,13 @@ pub struct Column<'a> {
     pub primary: Option<bool>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct NamedConstraint<'a> {
     pub name: &'a str,
     pub constraint: Constraint<'a>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum Constraint<'a> {
     Unique(Vec<&'a str>),
     Index(Vec<&'a str>),
@@ -36,11 +41,13 @@ pub enum Constraint<'a> {
     Check,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Alter<'a> {
     pub table_name: &'a str,
     pub expr: AlterExpr<'a>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum AlterExpr<'a> {
     AddColumn(Column<'a>),
     DropColumn(&'a str),

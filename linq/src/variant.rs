@@ -55,6 +55,7 @@ impl From<Vec<u8>> for Variant {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColumnType {
     Int,
     BigInt,
