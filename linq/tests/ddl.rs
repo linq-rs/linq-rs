@@ -17,7 +17,7 @@ fn test_create_table() {
         );
 
         CREATE TABLE Card(
-            id INT PRIMARY,
+            id INT PRIMARY AUTOINC,
             user_id INT,
             date DATETIME,
             CONSTRAINT user_id_foreign_key FOREIGN KEY (user_id) REFERENCES User(id),
@@ -84,6 +84,40 @@ fn test_create_table() {
                     constraint: Constraint::Index(vec!["date"])
                 }
             ]
+        })
+    );
+
+    assert_eq!(
+        qirs[1],
+        DDL::Create(Create {
+            table_name: "Card",
+            cols: vec![
+                Column {
+                    name: "id",
+                    col_type: ColumnType::Int,
+                    not_null: false,
+                    default_value: None,
+                    primary: Some(true),
+                },
+                Column {
+                    name: "user_id",
+                    col_type: ColumnType::Int,
+                    not_null: false,
+                    default_value: None,
+                    primary: None,
+                },
+                Column {
+                    name: "date",
+                    col_type: ColumnType::DateTime,
+                    not_null: false,
+                    default_value: None,
+                    primary: None,
+                }
+            ],
+            constraints: vec![NamedConstraint {
+                name: "user_id_foreign_key",
+                constraint: Constraint::ForeignKey(vec!["user_id"], "User", vec!["id"])
+            },]
         })
     );
 }
