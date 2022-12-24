@@ -9,7 +9,9 @@ edition = "2021"
 anyhow = "1.0.57"
 log = "0.4.16"
 linq_proc_macro = {path = "../proc_macro"}
-async-trait = "0.1.60"
+async-trait = "0.1.58"
+chrono = "0.4.23"
+num = "0.4"
 
 [dev-dependencies]
 dotenv = "0.15.0"
