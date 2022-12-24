@@ -15,11 +15,12 @@ pub trait QueryIterator {
 
 #[async_trait::async_trait]
 pub trait Driver {
+    type SelectResult: QueryIterator;
     /// Execute select stmt
     async fn select<'a>(
         &mut self,
         selecter: &dml::Selecter<'a>,
-    ) -> anyhow::Result<Box<dyn QueryIterator>>;
+    ) -> anyhow::Result<Self::SelectResult>;
 
     /// Execute update stmt
     async fn update<'a>(
