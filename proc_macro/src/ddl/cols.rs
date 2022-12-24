@@ -11,7 +11,7 @@ use super::kw;
 pub struct Column {
     pub span: Span,
     pub name: String,
-    col_type: ColumnType,
+    col_type: SqlType,
     not_null: bool,
     default_value: Option<Variant>,
     primary: Option<bool>,
@@ -120,7 +120,7 @@ impl CodeGen for Column {
     }
 }
 
-enum ColumnType {
+enum SqlType {
     Int(kw::INT),
     BigInt(kw::BIGINT),
     Float(kw::FLOAT),
@@ -131,7 +131,7 @@ enum ColumnType {
     Timestamp(kw::TIMESTAMP),
 }
 
-impl Parse for ColumnType {
+impl Parse for SqlType {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
 
@@ -157,7 +157,7 @@ impl Parse for ColumnType {
     }
 }
 
-impl CodeGen for ColumnType {
+impl CodeGen for SqlType {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
         let name = match self {
             Self::Int(_) => quote!(Int),
@@ -171,7 +171,7 @@ impl CodeGen for ColumnType {
         };
 
         Ok(quote! {
-            ::linq_rs::ColumnType::#name
+            ::linq_rs::SqlType::#name
         })
     }
 }

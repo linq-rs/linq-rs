@@ -1,4 +1,4 @@
-use crate::{ColumnType, Variant};
+use crate::{SqlType, Variant};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DDL<'a> {
@@ -21,7 +21,7 @@ pub struct Create<'a> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Column<'a> {
     pub name: &'a str,
-    pub col_type: ColumnType,
+    pub col_type: SqlType,
     pub not_null: bool,
     pub default_value: Option<Variant>,
     pub primary: Option<bool>,

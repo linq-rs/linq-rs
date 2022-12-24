@@ -54,21 +54,21 @@ fn test_create_table() {
             cols: vec![
                 Column {
                     name: "id",
-                    col_type: ColumnType::Int,
+                    col_type: SqlType::Int,
                     not_null: false,
                     default_value: None,
                     primary: Some(false),
                 },
                 Column {
                     name: "name",
-                    col_type: ColumnType::String,
+                    col_type: SqlType::String,
                     not_null: false,
                     default_value: None,
                     primary: None,
                 },
                 Column {
                     name: "date",
-                    col_type: ColumnType::DateTime,
+                    col_type: SqlType::DateTime,
                     not_null: false,
                     default_value: None,
                     primary: None,
@@ -94,21 +94,21 @@ fn test_create_table() {
             cols: vec![
                 Column {
                     name: "id",
-                    col_type: ColumnType::Int,
+                    col_type: SqlType::Int,
                     not_null: false,
                     default_value: None,
                     primary: Some(true),
                 },
                 Column {
                     name: "user_id",
-                    col_type: ColumnType::Int,
+                    col_type: SqlType::Int,
                     not_null: false,
                     default_value: None,
                     primary: None,
                 },
                 Column {
                     name: "date",
-                    col_type: ColumnType::DateTime,
+                    col_type: SqlType::DateTime,
                     not_null: false,
                     default_value: None,
                     primary: None,

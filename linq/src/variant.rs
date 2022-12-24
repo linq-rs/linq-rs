@@ -87,7 +87,7 @@ impl From<NaiveTime> for Variant {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ColumnType {
+pub enum SqlType {
     Int,
     BigInt,
     Float,
