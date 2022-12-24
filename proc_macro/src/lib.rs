@@ -33,6 +33,16 @@ pub fn rqls(ident: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+#[allow(non_snake_case)]
+pub fn rql_where(ident: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(ident as CondExpr);
+
+    let token_stream = ast.gen_ir_code().expect("gen ir code");
+
+    token_stream.into()
+}
+
+#[proc_macro]
 pub fn ddl(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DDLs);
 
