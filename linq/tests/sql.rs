@@ -1,9 +1,5 @@
 use linq_proc_macro::*;
-use linq_rs::{
-    dml::*,
-    orm::{Select, Table},
-    QueryIterator, SelectSupport, Variant,
-};
+use linq_rs::dml::*;
 
 #[async_std::test]
 async fn test_select() {

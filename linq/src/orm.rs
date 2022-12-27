@@ -1,10 +1,13 @@
-use crate::{dml::CondExpr, SelectSupport, Variant};
+use crate::{
+    dml::{CondExpr, Limit},
+    Variant,
+};
 
 pub trait Table: Sized {
     /// Get table name
-    fn table_name(&self) -> &'static str;
+    fn table_name() -> &'static str;
 
-    fn cols(&self) -> &'static [&'static Column];
+    fn cols() -> &'static [Column];
 
     fn write(&mut self, values: Vec<ColumnValue>) -> anyhow::Result<()>;
 
@@ -15,6 +18,12 @@ pub enum Column {
     WithName(&'static str),
 
     Cascade(Cascade),
+}
+
+impl From<&'static str> for Column {
+    fn from(name: &'static str) -> Self {
+        Column::WithName(name)
+    }
 }
 
 pub struct Cascade {
@@ -32,21 +41,44 @@ pub enum ColumnValue {
     CascadeMany(&'static str, Vec<Vec<ColumnValue>>),
 }
 
-#[async_trait::async_trait]
-pub trait Select {
-    async fn select<T, D>(&self, on: &mut D) -> anyhow::Result<T>
-    where
-        T: Table,
-        D: SelectSupport + Sync + Send;
-}
+impl ColumnValue {
+    pub fn col_name(&self) -> &'static str {
+        match self {
+            Self::Variant(name, _) => name,
+            Self::Cascade(name, _) => name,
+            Self::CascadeMany(name, _) => name,
+        }
+    }
 
-#[async_trait::async_trait]
-impl Select for CondExpr {
-    async fn select<T, D>(&self, on: &mut D) -> anyhow::Result<T>
-    where
-        T: Table,
-        D: SelectSupport + Sync + Send,
-    {
-        unimplemented!()
+    pub fn variant_value(&self) -> anyhow::Result<Variant> {
+        match self {
+            Self::Variant(_, value) => Ok(value.clone()),
+            Self::Cascade(_, _) => Err(anyhow::format_err!("Column type mismatch")),
+            Self::CascadeMany(_, _) => Err(anyhow::format_err!("Column type mismatch")),
+        }
     }
 }
+
+pub trait SelectEx {
+    type Context<'a>;
+    fn select<'a>() -> Self::Context<'a>;
+}
+
+pub trait WhereEx {
+    fn cond(self, cond: CondExpr) -> Self;
+}
+
+pub trait LimitEx {
+    fn limit(self, count: usize) -> Self;
+}
+
+pub trait OffsetEx {
+    fn offset(self, offset: usize) -> Self;
+}
+
+pub trait OrderByEx<'a> {
+    fn order_by(self, col_name: &'a str, desc: bool) -> Self;
+}
+
+mod select;
+pub use select::*;

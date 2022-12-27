@@ -1,65 +1,57 @@
-use linq_rs::dml::*;
 use linq_rs::orm::*;
 use linq_rs::*;
 
-struct NullDriver {}
+mod utils;
+use utils::*;
 
-struct NullQueryIterator {}
-
-#[async_trait::async_trait]
-impl QueryIterator for NullQueryIterator {
-    async fn next(&mut self) -> anyhow::Result<bool> {
-        unimplemented!()
-    }
-
-    /// Get column value by offset id
-    async fn get(&mut self, offset: usize) -> anyhow::Result<Variant> {
-        unimplemented!()
-    }
-
-    /// Get column value by column name
-    async fn get_by_name(&mut self, name: &str) -> anyhow::Result<Variant> {
-        unimplemented!()
-    }
+#[table]
+struct User {
+    #[primary]
+    id: usize,
+    first_name: String,
+    last_name: String,
+    created_time: DateTime,
+    updated_time: DateTime,
 }
 
-#[async_trait::async_trait]
-impl SelectSupport for NullDriver {
-    type SelectResult = NullQueryIterator;
-    /// Execute select stmt
-    async fn select<'a>(&mut self, selecter: &Selecter<'a>) -> anyhow::Result<Self::SelectResult> {
-        unimplemented!()
-    }
-}
+// #[allow(unused)]
+// #[async_std::test]
+// async fn test_select_one() -> anyhow::Result<()> {
+//     let a = 1;
 
-struct NullTable {}
+//     let order_by = "name".to_string();
 
-impl Table for NullTable {
-    fn table_name(&self) -> &'static str {
-        return "null_table";
-    }
+//     let qir = rql! {
+//         SELECT id,name,created FROM null_table WHERE id = #a ORDER BY #order_by.as_str() DESC LIMIT 1 OFFSET 20
+//     };
 
-    fn cols(&self) -> &'static [&'static Column] {
-        static cols: &'static [&'static Column] = [].as_slice();
+//     let mut driver = AssertDriver::exepct_selecter(qir, || vec![NullTable::default()]);
 
-        cols
-    }
+//     let row = NullTable::select()
+//         .cond(rql_where!(id = #a))
+//         .order_by(&order_by, true)
+//         .offset(20)
+//         .exec(&mut driver)
+//         .await?;
 
-    fn write(&mut self, values: Vec<ColumnValue>) -> anyhow::Result<()> {
-        unimplemented!()
-    }
+//     Ok(())
+// }
 
-    fn read(&self) -> anyhow::Result<Vec<ColumnValue>> {
-        unimplemented!()
-    }
-}
+// #[allow(unused)]
+// #[async_std::test]
+// async fn test_select_many() -> anyhow::Result<()> {
+//     let mut driver = NullDriver {};
+//     let a = 1;
 
-#[async_std::test]
-async fn test_select() -> anyhow::Result<()> {
-    let mut driver = NullDriver {};
-    let a = 1;
+//     let order_by = "name".to_string();
 
-    let t: NullTable = rql_where! (id = 1 AND c = #a).select(&mut driver).await?;
+//     let row = Vec::<NullTable>::select()
+//         .cond(rql_where!(id = #a))
+//         .order_by(&order_by, true)
+//         .limit(100)
+//         .offset(20)
+//         .exec(&mut driver)
+//         .await?;
 
-    Ok(())
-}
+//     Ok(())
+// }

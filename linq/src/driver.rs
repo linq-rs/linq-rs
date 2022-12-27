@@ -14,13 +14,10 @@ pub trait QueryIterator {
 }
 
 #[async_trait::async_trait]
-pub trait SelectSupport {
+pub trait SelectSupport<'a> {
     type SelectResult: QueryIterator;
     /// Execute select stmt
-    async fn select<'a>(
-        &mut self,
-        selecter: &dml::Selecter<'a>,
-    ) -> anyhow::Result<Self::SelectResult>;
+    async fn select(&mut self, selecter: &dml::Selecter<'a>) -> anyhow::Result<Self::SelectResult>;
 }
 
 #[async_trait::async_trait]

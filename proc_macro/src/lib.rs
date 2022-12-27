@@ -12,6 +12,9 @@ use ddl::*;
 
 mod variant;
 
+mod orm;
+use orm::*;
+
 #[proc_macro]
 pub fn rql(ident: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(ident as RQL);
@@ -49,6 +52,19 @@ pub fn ddl(input: TokenStream) -> TokenStream {
     let token_stream = ast.gen_ir_code().expect("Gen ir code error");
 
     // eprintln!("gen: {}", token_stream.to_string());
+
+    token_stream.into()
+}
+
+#[proc_macro_attribute]
+pub fn table(attrs: TokenStream, item: TokenStream) -> TokenStream {
+    let mut table = parse_macro_input!(attrs as Table);
+
+    let token_stream = table
+        .with_struct_define(parse_macro_input!(item))
+        .expect("Parse table struct error")
+        .gen_ir_code()
+        .expect("Generate table code error");
 
     token_stream.into()
 }

@@ -1,5 +1,7 @@
-use chrono::{DateTime, NaiveTime, Utc};
 use num::{BigInt, BigRational};
+
+type DateTime = chrono::DateTime<chrono::Utc>;
+type Timestamp = chrono::NaiveTime;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
@@ -9,8 +11,8 @@ pub enum Variant {
     BigFloat(BigRational),
     String(String),
     Bytes(Vec<u8>),
-    DateTime(DateTime<Utc>),
-    Timestamp(NaiveTime),
+    DateTime(DateTime),
+    Timestamp(Timestamp),
     Null,
 }
 
@@ -74,14 +76,14 @@ impl From<Vec<u8>> for Variant {
     }
 }
 
-impl From<DateTime<Utc>> for Variant {
-    fn from(v: DateTime<Utc>) -> Self {
+impl From<DateTime> for Variant {
+    fn from(v: DateTime) -> Self {
         Variant::DateTime(v)
     }
 }
 
-impl From<NaiveTime> for Variant {
-    fn from(v: NaiveTime) -> Self {
+impl From<Timestamp> for Variant {
+    fn from(v: Timestamp) -> Self {
         Variant::Timestamp(v)
     }
 }
