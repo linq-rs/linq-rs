@@ -12,3 +12,5 @@ pub mod ddl;
 pub use linq_proc_macro::*;
 
 pub mod orm;
+
+pub use anyhow;

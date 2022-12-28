@@ -1,7 +1,7 @@
 use num::{BigInt, BigRational};
 
-type DateTime = chrono::DateTime<chrono::Utc>;
-type Timestamp = chrono::NaiveTime;
+pub type DateTime = chrono::DateTime<chrono::Utc>;
+pub type Timestamp = chrono::NaiveTime;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
@@ -24,6 +24,12 @@ impl From<i64> for Variant {
 
 impl From<i32> for Variant {
     fn from(v: i32) -> Self {
+        Variant::Int(v as i64)
+    }
+}
+
+impl From<usize> for Variant {
+    fn from(v: usize) -> Self {
         Variant::Int(v as i64)
     }
 }
@@ -79,6 +85,36 @@ impl From<Vec<u8>> for Variant {
 impl From<DateTime> for Variant {
     fn from(v: DateTime) -> Self {
         Variant::DateTime(v)
+    }
+}
+
+impl TryFrom<Variant> for DateTime {
+    type Error = anyhow::Error;
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value {
+            Variant::DateTime(datetime) => Ok(datetime),
+            _ => Err(anyhow::format_err!("Variant type mismatch")),
+        }
+    }
+}
+
+impl TryFrom<Variant> for usize {
+    type Error = anyhow::Error;
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value {
+            Variant::Int(v) => Ok(v as usize),
+            _ => Err(anyhow::format_err!("Variant type mismatch")),
+        }
+    }
+}
+
+impl TryFrom<Variant> for String {
+    type Error = anyhow::Error;
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value {
+            Variant::String(v) => Ok(v),
+            _ => Err(anyhow::format_err!("Variant type mismatch")),
+        }
     }
 }
 

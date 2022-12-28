@@ -1,5 +1,4 @@
-use linq_rs::orm::*;
-use linq_rs::*;
+use linq_rs::{orm::*, *};
 
 mod utils;
 use utils::*;
@@ -10,32 +9,42 @@ struct User {
     id: usize,
     first_name: String,
     last_name: String,
+    #[one_to_many(from=id to=user_id)]
+    cards: Card,
     created_time: DateTime,
     updated_time: DateTime,
 }
 
-// #[allow(unused)]
-// #[async_std::test]
-// async fn test_select_one() -> anyhow::Result<()> {
-//     let a = 1;
+#[table]
+struct Card {
+    #[primary]
+    id: usize,
+    user_id: usize,
+    card_no: String,
+}
 
-//     let order_by = "name".to_string();
+#[allow(unused)]
+#[async_std::test]
+async fn test_select_one() -> anyhow::Result<()> {
+    let a = 1;
 
-//     let qir = rql! {
-//         SELECT id,name,created FROM null_table WHERE id = #a ORDER BY #order_by.as_str() DESC LIMIT 1 OFFSET 20
-//     };
+    let order_by = "name".to_string();
 
-//     let mut driver = AssertDriver::exepct_selecter(qir, || vec![NullTable::default()]);
+    let qir = rql! {
+        SELECT id,first_name,last_name,created_time,updated_time FROM User WHERE id = #a ORDER BY #order_by.as_str() DESC LIMIT 1 OFFSET 20
+    };
 
-//     let row = NullTable::select()
-//         .cond(rql_where!(id = #a))
-//         .order_by(&order_by, true)
-//         .offset(20)
-//         .exec(&mut driver)
-//         .await?;
+    let mut driver = AssertDriver::exepct_selecter(qir, || vec![User::default()]);
 
-//     Ok(())
-// }
+    let row = User::select()
+        .cond(rql_where!(id = #a))
+        .order_by(&order_by, true)
+        .offset(20)
+        .exec(&mut driver)
+        .await?;
+
+    Ok(())
+}
 
 // #[allow(unused)]
 // #[async_std::test]

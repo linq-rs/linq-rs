@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use syn::parse_macro_input;
+use syn::{parse_macro_input, LitStr};
 
 mod dml;
 use dml::*;
@@ -58,10 +58,9 @@ pub fn ddl(input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn table(attrs: TokenStream, item: TokenStream) -> TokenStream {
-    let mut table = parse_macro_input!(attrs as Table);
+    let table_name = parse_macro_input!(attrs as Option<LitStr>);
 
-    let token_stream = table
-        .with_struct_define(parse_macro_input!(item))
+    let token_stream = Table::new(table_name, parse_macro_input!(item))
         .expect("Parse table struct error")
         .gen_ir_code()
         .expect("Generate table code error");

@@ -60,7 +60,7 @@ where
     async fn next(&mut self) -> anyhow::Result<bool> {
         match self.rows.next() {
             Some(mut t) => {
-                self.current = t.read()?;
+                self.current = t.into_values();
                 return Ok(true);
             }
             None => return Ok(false),
@@ -78,7 +78,7 @@ where
             if col.col_name() == name {
                 return col
                     .variant_value()
-                    .map_err(|_| anyhow::format_err!("Col is reference table"));
+                    .map_err(|_| anyhow::format_err!("Col is reference table {}", col.col_name()));
             }
         }
 

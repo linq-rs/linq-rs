@@ -5,7 +5,9 @@ use crate::{
     QueryIterator, SelectSupport,
 };
 
-use super::{Column, ColumnValue, Limit, LimitEx, OffsetEx, OrderByEx, SelectEx, Table, WhereEx};
+use super::{Limit, LimitEx, OffsetEx, OrderByEx, SelectEx, WhereEx};
+
+use super::table::*;
 
 pub struct SelectOne<'a, T> {
     selecter: Selecter<'a>,
@@ -29,7 +31,11 @@ where
 
             for col in T::cols() {
                 match col {
-                    Column::WithName(name) => {
+                    Column::Simple(name) => {
+                        let value = rows.get_by_name(name).await?;
+                        values.push(ColumnValue::Variant(&name, value));
+                    }
+                    Column::Primary(name, _) => {
                         let value = rows.get_by_name(name).await?;
                         values.push(ColumnValue::Variant(&name, value));
                     }
@@ -37,7 +43,7 @@ where
                 }
             }
 
-            result.write(values)?;
+            result.from_values(values)?;
 
             break;
         }
@@ -68,7 +74,11 @@ where
 
             for col in T::cols() {
                 match col {
-                    Column::WithName(name) => {
+                    Column::Simple(name) => {
+                        let value = rows.get_by_name(name).await?;
+                        values.push(ColumnValue::Variant(&name, value));
+                    }
+                    Column::Primary(name, _) => {
                         let value = rows.get_by_name(name).await?;
                         values.push(ColumnValue::Variant(&name, value));
                     }
@@ -78,7 +88,7 @@ where
 
             let mut t: T = Default::default();
 
-            t.write(values)?;
+            t.from_values(values)?;
 
             result.push(t);
         }
@@ -98,7 +108,10 @@ where
 
         for col in T::cols() {
             match col {
-                Column::WithName(name) => {
+                Column::Simple(name) => {
+                    cols.push(SelectNamedColumn { name, aliase: None });
+                }
+                Column::Primary(name, _) => {
                     cols.push(SelectNamedColumn { name, aliase: None });
                 }
                 _ => continue,
@@ -171,7 +184,10 @@ where
 
         for col in T::cols() {
             match col {
-                Column::WithName(name) => {
+                Column::Simple(name) => {
+                    cols.push(SelectNamedColumn { name, aliase: None });
+                }
+                Column::Primary(name, _) => {
                     cols.push(SelectNamedColumn { name, aliase: None });
                 }
                 _ => continue,
