@@ -2,7 +2,8 @@ use std::marker::PhantomData;
 
 use crate::{
     dml::{CondExpr, CondOp, CondParam, Deleter},
-    DeleteSupport, Variant,
+    driver::DeleteSupport,
+    Variant,
 };
 
 use super::{ColumnValue, Table, Where};

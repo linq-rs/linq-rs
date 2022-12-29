@@ -13,6 +13,22 @@ pub trait QueryIterator {
     async fn get_by_name(&mut self, name: &str) -> anyhow::Result<Variant>;
 }
 
+/// Trait to support executing [`SELECT`] expr.
+///
+/// # Examples
+///
+/// ```
+/// use linq_rs::*;
+///
+/// async fn execute<D>(d: &mut D) -> anyhow::Result<D::SelectResult> where D: driver::SelectSupport<'static> {
+///     let qir = rql! {
+///        SELECT name,created_time FROM table WHERE id = 1 ORDER BY name DESC LIMIT 10 OFFSET 2;
+///     };
+///
+///     d.select(&qir).await
+/// }
+///
+/// ```
 #[async_trait::async_trait]
 pub trait SelectSupport<'a> {
     type SelectResult: QueryIterator;
@@ -20,6 +36,7 @@ pub trait SelectSupport<'a> {
     async fn select(&mut self, selecter: &dml::Selecter<'a>) -> anyhow::Result<Self::SelectResult>;
 }
 
+/// Trait to support executing [`INSERT`] expr.
 #[async_trait::async_trait]
 pub trait UpdateSupport<'a> {
     /// Execute update stmt
@@ -30,6 +47,7 @@ pub trait UpdateSupport<'a> {
     ) -> anyhow::Result<usize>;
 }
 
+/// Trait to support executing [`INSERT`] expr.
 #[async_trait::async_trait]
 pub trait InsertSupport<'a> {
     /// Execute insert stmt
@@ -40,6 +58,7 @@ pub trait InsertSupport<'a> {
     ) -> anyhow::Result<usize>;
 }
 
+/// Trait to support executing [`DELETE`] expr.
 #[async_trait::async_trait]
 pub trait DeleteSupport<'a> {
     /// Execute delete stmt
@@ -48,6 +67,7 @@ pub trait DeleteSupport<'a> {
     async fn delete(&mut self, deleter: &dml::Deleter<'a>) -> anyhow::Result<usize>;
 }
 
+/// Trait to support executing [`DDL`](https://www.javatpoint.com/dbms-sql-command) exprs.
 #[async_trait::async_trait]
 pub trait DDLSupport {
     /// Execute ddl stmts

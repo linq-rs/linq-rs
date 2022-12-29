@@ -15,6 +15,7 @@ mod variant;
 mod orm;
 use orm::*;
 
+/// Building Single-Row SQL dml statements
 #[proc_macro]
 pub fn rql(ident: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(ident as RQL);
@@ -26,6 +27,7 @@ pub fn rql(ident: TokenStream) -> TokenStream {
     token_stream.into()
 }
 
+/// Building multi-line SQL dml statements
 #[proc_macro]
 pub fn rqls(ident: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(ident as RQLs);
@@ -35,6 +37,7 @@ pub fn rqls(ident: TokenStream) -> TokenStream {
     token_stream.into()
 }
 
+/// Building SQL dml [`where`](https://www.w3schools.com/sql/sql_where.asp) clause
 #[proc_macro]
 #[allow(non_snake_case)]
 pub fn rql_where(ident: TokenStream) -> TokenStream {
@@ -45,6 +48,7 @@ pub fn rql_where(ident: TokenStream) -> TokenStream {
     token_stream.into()
 }
 
+/// Building multi-line SQL DDL statements
 #[proc_macro]
 pub fn ddl(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DDLs);
@@ -56,6 +60,33 @@ pub fn ddl(input: TokenStream) -> TokenStream {
     token_stream.into()
 }
 
+/// Macro to generate implementation of the `Table` trait for data structures.
+///
+/// # Examples
+///
+/// ```ignore
+/// use linq_rs::*;
+/// #[linq_rs::table]
+/// struct User {
+///     #[column("id_")]
+///     #[primary]
+///     id: usize,
+///     first_name: String,
+///     last_name: String,
+///     #[one_to_many(from=col_id to=col_user_id)]
+///     cards: Card,
+///     created_time: DateTime,
+///     updated_time: DateTime,
+/// }
+///
+/// #[table]
+/// struct Card {
+///     #[primary]
+///     id: usize,
+///     user_id: usize,
+///     card_no: String,
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn table(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let table_name = parse_macro_input!(attrs as Option<LitStr>);

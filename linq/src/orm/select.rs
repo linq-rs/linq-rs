@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{
     dml::{OrderBy, SelectColumns, SelectFrom, SelectNamedColumn, Selecter},
-    QueryIterator, SelectSupport,
+    driver::{QueryIterator, SelectSupport},
 };
 
 use super::{Limit, Offset, Order, Where};

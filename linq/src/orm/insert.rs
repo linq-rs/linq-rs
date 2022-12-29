@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{dml::Inserter, InsertSupport, Variant};
+use crate::{dml::Inserter, driver::InsertSupport, Variant};
 
 use super::{ColumnValue, Table};
 

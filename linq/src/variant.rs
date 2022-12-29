@@ -1,8 +1,12 @@
 use num::{BigInt, BigRational};
 
+/// LINQ ir datetime type import from chrono.
 pub type DateTime = chrono::DateTime<chrono::Utc>;
+
+/// LINQ ir timestamp type import from chrono.
 pub type Timestamp = chrono::NaiveTime;
 
+/// LINQ ir basic type value enum
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
     Int(i64),
@@ -124,8 +128,9 @@ impl From<Timestamp> for Variant {
     }
 }
 
+/// LINQ ir basic type enum
 #[derive(Debug, Clone, PartialEq)]
-pub enum SqlType {
+pub enum IrType {
     Int,
     BigInt,
     Float,
