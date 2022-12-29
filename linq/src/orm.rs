@@ -4,11 +4,6 @@ pub use table::*;
 
 use crate::dml::{CondExpr, Limit};
 
-pub trait SelectEx {
-    type Context<'a>;
-    fn select<'a>() -> Self::Context<'a>;
-}
-
 pub trait WhereEx {
     fn cond(self, cond: CondExpr) -> Self;
 }
@@ -27,3 +22,6 @@ pub trait OrderByEx<'a> {
 
 mod select;
 pub use select::*;
+
+mod update;
+pub use update::*;

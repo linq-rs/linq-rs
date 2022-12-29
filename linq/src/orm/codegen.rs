@@ -8,6 +8,60 @@ pub trait ColumnLike {
 }
 
 #[derive(Debug, Clone)]
+pub struct Primary<T, const AUTOINC: bool>
+where
+    T: Into<Variant> + TryFrom<Variant>,
+{
+    pub value: Option<T>,
+}
+
+impl<T, const AUTOINC: bool> Default for Primary<T, AUTOINC>
+where
+    T: Into<Variant> + TryFrom<Variant>,
+{
+    fn default() -> Self {
+        Self { value: None }
+    }
+}
+
+impl<T, const AUTOINC: bool> ColumnLike for Primary<T, AUTOINC>
+where
+    T: Into<Variant> + TryFrom<Variant, Error = anyhow::Error>,
+{
+    fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
+        if let Some(v) = self.value.take() {
+            ColumnValue::Primary(col_name, AUTOINC, v.into())
+        } else {
+            ColumnValue::Primary(col_name, AUTOINC, Variant::Null)
+        }
+    }
+
+    fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
+        match value {
+            ColumnValue::Simple(_, value) => {
+                if let Variant::Null = value {
+                    self.value = None;
+                } else {
+                    self.value = Some(value.try_into()?);
+                }
+
+                Ok(())
+            }
+            ColumnValue::Primary(_, _, value) => {
+                if let Variant::Null = value {
+                    self.value = None;
+                } else {
+                    self.value = Some(value.try_into()?);
+                }
+
+                Ok(())
+            }
+            _ => Err(anyhow::format_err!("Column type mismatch")),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Column<T>
 where
     T: Into<Variant> + TryFrom<Variant>,
@@ -30,15 +84,24 @@ where
 {
     fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
         if let Some(v) = self.value.take() {
-            ColumnValue::Variant(col_name, v.into())
+            ColumnValue::Simple(col_name, v.into())
         } else {
-            ColumnValue::Variant(col_name, Variant::Null)
+            ColumnValue::Simple(col_name, Variant::Null)
         }
     }
 
     fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
         match value {
-            ColumnValue::Variant(_, value) => {
+            ColumnValue::Simple(_, value) => {
+                if let Variant::Null = value {
+                    self.value = None;
+                } else {
+                    self.value = Some(value.try_into()?);
+                }
+
+                Ok(())
+            }
+            ColumnValue::Primary(_, _, value) => {
                 if let Variant::Null = value {
                     self.value = None;
                 } else {
@@ -75,15 +138,15 @@ where
 {
     fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
         if let Some(mut v) = self.value.take() {
-            ColumnValue::Cascade(col_name, v.into_values())
+            ColumnValue::OneToOne(col_name, v.into_values())
         } else {
-            ColumnValue::Variant(col_name, Variant::Null)
+            ColumnValue::OneToOne(col_name, vec![])
         }
     }
 
     fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
         match value {
-            ColumnValue::Cascade(_, values) => {
+            ColumnValue::OneToOne(_, values) => {
                 let mut v: T = Default::default();
 
                 v.from_values(values)?;
@@ -125,15 +188,15 @@ where
                 rows.push(row.into_values());
             }
 
-            ColumnValue::CascadeMany(col_name, rows)
+            ColumnValue::OneToMany(col_name, rows)
         } else {
-            ColumnValue::Variant(col_name, Variant::Null)
+            ColumnValue::OneToMany(col_name, vec![])
         }
     }
 
     fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
         match value {
-            ColumnValue::CascadeMany(_, rows) => {
+            ColumnValue::OneToMany(_, rows) => {
                 let mut values = vec![];
 
                 for row in rows {

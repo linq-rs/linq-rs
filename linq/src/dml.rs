@@ -132,5 +132,5 @@ impl<'a> From<Vec<(&'a str, &'a str)>> for SelectColumns<'a> {
 pub struct Updater<'a> {
     pub table_name: &'a str,
     pub cols: Columns<'a>,
-    pub cond: CondExpr,
+    pub cond: Option<CondExpr>,
 }

@@ -32,27 +32,27 @@ pub struct Cascade {
 }
 
 pub enum ColumnValue {
-    Variant(&'static str, Variant),
-
-    Cascade(&'static str, Vec<ColumnValue>),
-
-    CascadeMany(&'static str, Vec<Vec<ColumnValue>>),
+    Primary(&'static str, bool, Variant),
+    Simple(&'static str, Variant),
+    OneToOne(&'static str, Vec<ColumnValue>),
+    OneToMany(&'static str, Vec<Vec<ColumnValue>>),
 }
 
 impl ColumnValue {
     pub fn col_name(&self) -> &'static str {
         match self {
-            Self::Variant(name, _) => name,
-            Self::Cascade(name, _) => name,
-            Self::CascadeMany(name, _) => name,
+            Self::Primary(name, _, _) => name,
+            Self::Simple(name, _) => name,
+            Self::OneToOne(name, _) => name,
+            Self::OneToMany(name, _) => name,
         }
     }
 
-    pub fn variant_value(&self) -> anyhow::Result<Variant> {
+    pub fn into_simple_value(&self) -> anyhow::Result<Variant> {
         match self {
-            Self::Variant(_, value) => Ok(value.clone()),
-            Self::Cascade(_, _) => Err(anyhow::format_err!("Column type mismatch")),
-            Self::CascadeMany(_, _) => Err(anyhow::format_err!("Column type mismatch")),
+            Self::Primary(_, _, value) => Ok(value.clone()),
+            Self::Simple(_, value) => Ok(value.clone()),
+            _ => Err(anyhow::format_err!("Column type mismatch")),
         }
     }
 }

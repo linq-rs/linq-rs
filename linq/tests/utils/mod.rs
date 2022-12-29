@@ -77,7 +77,7 @@ where
         for col in &self.current {
             if col.col_name() == name {
                 return col
-                    .variant_value()
+                    .into_simple_value()
                     .map_err(|_| anyhow::format_err!("Col is reference table {}", col.col_name()));
             }
         }

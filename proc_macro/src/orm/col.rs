@@ -30,6 +30,18 @@ impl ColumnDef {
 
         return LitStr::new(&self.name.to_string(), self.name.span());
     }
+
+    pub fn primary_autoinc(&self) -> bool {
+        for attr in &self.attrs {
+            match attr {
+                ColumnAttr::Primary(autoinc) => return *autoinc,
+                _ => {}
+            }
+        }
+
+        return false;
+    }
+
     pub fn col_type(&self) -> ColumnType {
         for attr in &self.attrs {
             match attr {
@@ -65,9 +77,12 @@ impl CodeGen for ColumnDef {
         let ty = &self.col_type;
 
         match self.col_type() {
-            ColumnType::Primary => Ok(quote! {
-                #name : ::linq_rs::orm::codegen::Column<#ty>
-            }),
+            ColumnType::Primary => {
+                let autoinc = self.primary_autoinc();
+                Ok(quote! {
+                    #name : ::linq_rs::orm::codegen::Primary<#ty,#autoinc>
+                })
+            }
             ColumnType::Simple => Ok(quote! {
                 #name : ::linq_rs::orm::codegen::Column<#ty>
             }),

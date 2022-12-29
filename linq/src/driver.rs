@@ -21,12 +21,12 @@ pub trait SelectSupport<'a> {
 }
 
 #[async_trait::async_trait]
-pub trait UpdateSupport {
+pub trait UpdateSupport<'a> {
     /// Execute update stmt
-    async fn update<'a>(
+    async fn update(
         &mut self,
         updater: &dml::Updater<'a>,
-        values: &[Variant],
+        values: Vec<Variant>,
     ) -> anyhow::Result<usize>;
 }
 
@@ -36,7 +36,7 @@ pub trait InsertSupport {
     async fn insert<'a>(
         &mut self,
         inserter: &dml::Inserter<'a>,
-        values: &[Variant],
+        values: Vec<Variant>,
     ) -> anyhow::Result<usize>;
 }
 

@@ -41,7 +41,7 @@ impl CodeGen for Update {
             ::linq_rs::dml::Updater {
                 table_name: #table_name,
                 cols: #cols,
-                cond: #cond,
+                cond: Some(#cond),
             }
         })
     }

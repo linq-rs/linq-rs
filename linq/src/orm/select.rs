@@ -5,9 +5,14 @@ use crate::{
     QueryIterator, SelectSupport,
 };
 
-use super::{Limit, LimitEx, OffsetEx, OrderByEx, SelectEx, WhereEx};
+use super::{Limit, LimitEx, OffsetEx, OrderByEx, WhereEx};
 
 use super::table::*;
+
+pub trait SelectEx {
+    type Context<'a>;
+    fn select<'a>() -> Self::Context<'a>;
+}
 
 pub struct SelectOne<'a, T> {
     selecter: Selecter<'a>,
@@ -33,11 +38,11 @@ where
                 match col {
                     Column::Simple(name) => {
                         let value = rows.get_by_name(name).await?;
-                        values.push(ColumnValue::Variant(&name, value));
+                        values.push(ColumnValue::Simple(&name, value));
                     }
                     Column::Primary(name, _) => {
                         let value = rows.get_by_name(name).await?;
-                        values.push(ColumnValue::Variant(&name, value));
+                        values.push(ColumnValue::Simple(&name, value));
                     }
                     _ => continue,
                 }
@@ -76,11 +81,11 @@ where
                 match col {
                     Column::Simple(name) => {
                         let value = rows.get_by_name(name).await?;
-                        values.push(ColumnValue::Variant(&name, value));
+                        values.push(ColumnValue::Simple(&name, value));
                     }
                     Column::Primary(name, _) => {
                         let value = rows.get_by_name(name).await?;
-                        values.push(ColumnValue::Variant(&name, value));
+                        values.push(ColumnValue::Simple(&name, value));
                     }
                     _ => continue,
                 }
