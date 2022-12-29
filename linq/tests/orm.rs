@@ -9,7 +9,7 @@ struct User {
     id: usize,
     first_name: String,
     last_name: String,
-    #[one_to_many(from=id to=user_id)]
+    #[one_to_many(from=col_id to=col_user_id)]
     cards: Card,
     created_time: DateTime,
     updated_time: DateTime,

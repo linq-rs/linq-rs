@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{Fields, ItemStruct, LitStr, Visibility};
 
 use crate::gen::CodeGen;
@@ -119,6 +119,8 @@ impl Table {
 
         let read = self.gen_read_fn()?;
 
+        let col_names = self.gen_col_name_fns()?;
+
         Ok(quote! {
             impl ::linq_rs::orm::Table for #ident {
                 #table_name
@@ -132,6 +134,8 @@ impl Table {
 
             impl #ident {
                 #table_name_const
+
+                #col_names
             }
         })
     }
@@ -152,28 +156,36 @@ impl Table {
                 }
                 ColumnType::OneToOne => {
                     let related = col.related()?;
-                    let ref_col = related.from.to_string();
+                    let ref_col_name_fn =
+                        format_ident!("{}", related.from, span = related.from.span());
                     let col_type = &col.col_type;
-                    let foreign_key_col = related.to.to_string();
+                    let foreign_key_col_name_fn =
+                        format_ident!("{}", related.to, span = related.to.span());
+
+                    let self_type = &self.ident;
 
                     quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
                        name: #col_name,
-                       ref_col: #ref_col,
+                       ref_col: #self_type::#ref_col_name_fn(),
                        table_name: #col_type::table_name_const(),
-                       foreign_key_col: #foreign_key_col
+                       foreign_key_col: #col_type::#foreign_key_col_name_fn()
                     }))
                 }
                 ColumnType::OneToMany => {
                     let related = col.related()?;
-                    let ref_col = related.from.to_string();
+                    let ref_col_name_fn =
+                        format_ident!("{}", related.from, span = related.from.span());
                     let col_type = &col.col_type;
-                    let foreign_key_col = related.to.to_string();
+                    let foreign_key_col_name_fn =
+                        format_ident!("{}", related.to, span = related.to.span());
+
+                    let self_type = &self.ident;
 
                     quote!(::linq_rs::orm::Column::OneToMany(::linq_rs::orm::Cascade {
                        name: #col_name,
-                       ref_col: #ref_col,
+                       ref_col: #self_type::#ref_col_name_fn(),
                        table_name: #col_type::table_name_const(),
-                       foreign_key_col: #foreign_key_col
+                       foreign_key_col: #col_type::#foreign_key_col_name_fn()
                     }))
                 }
             });
@@ -266,6 +278,27 @@ impl Table {
 
                 vec![#(#cols,)*]
             }
+        })
+    }
+
+    fn gen_col_name_fns(&self) -> syn::Result<TokenStream> {
+        let mut cols = vec![];
+
+        for col in &self.cols {
+            let col_name = col.col_name();
+            let ident = &col.name;
+
+            let fn_name = format_ident!("col_{}", ident, span = ident.span());
+
+            cols.push(quote! {
+                const fn #fn_name() -> &'static str {
+                    #col_name
+                }
+            });
+        }
+
+        Ok(quote! {
+            #(#cols)*
         })
     }
 }
