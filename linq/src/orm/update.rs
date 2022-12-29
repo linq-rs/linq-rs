@@ -5,7 +5,7 @@ use crate::{
     UpdateSupport, Variant,
 };
 
-use super::{ColumnValue, Table, WhereEx};
+use super::{ColumnValue, Table, Where};
 
 pub trait UpdateEx {
     type Context<'a>;
@@ -106,7 +106,8 @@ where
     }
 }
 
-impl<'a, T> WhereEx for UpdateContext<'a, T> {
+impl<'a, T> Where for UpdateContext<'a, T> {
+    type Context = UpdateContext<'a, T>;
     fn cond(mut self, cond: crate::dml::CondExpr) -> Self {
         self.updater.cond = Some(cond);
         self

@@ -31,9 +31,9 @@ pub trait UpdateSupport<'a> {
 }
 
 #[async_trait::async_trait]
-pub trait InsertSupport {
+pub trait InsertSupport<'a> {
     /// Execute insert stmt
-    async fn insert<'a>(
+    async fn insert(
         &mut self,
         inserter: &dml::Inserter<'a>,
         values: Vec<Variant>,
@@ -41,11 +41,11 @@ pub trait InsertSupport {
 }
 
 #[async_trait::async_trait]
-pub trait DeleteSupport {
+pub trait DeleteSupport<'a> {
     /// Execute delete stmt
     ///
     /// Returns deleted rows
-    async fn delete<'a>(&mut self, inserter: &dml::Deleter<'a>) -> anyhow::Result<usize>;
+    async fn delete(&mut self, deleter: &dml::Deleter<'a>) -> anyhow::Result<usize>;
 }
 
 #[async_trait::async_trait]

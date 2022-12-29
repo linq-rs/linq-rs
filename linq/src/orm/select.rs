@@ -5,7 +5,7 @@ use crate::{
     QueryIterator, SelectSupport,
 };
 
-use super::{Limit, LimitEx, OffsetEx, OrderByEx, WhereEx};
+use super::{Limit, Offset, Order, Where};
 
 use super::table::*;
 
@@ -130,7 +130,7 @@ where
                     table_name: T::table_name(),
                 },
                 cond: None,
-                limit: Some(Limit {
+                limit: Some(crate::dml::Limit {
                     count: 1,
                     offset: None,
                 }),
@@ -143,24 +143,26 @@ where
     }
 }
 
-impl<'a, T> WhereEx for SelectOne<'a, T> {
-    fn cond(mut self, cond: crate::dml::CondExpr) -> Self {
+impl<'a, T> Where for SelectOne<'a, T> {
+    type Context = SelectOne<'a, T>;
+    fn cond(mut self, cond: crate::dml::CondExpr) -> Self::Context {
         self.selecter.cond = Some(cond);
         self
     }
 }
 
-impl<'a, T> OffsetEx for SelectOne<'a, T> {
-    fn offset(mut self, offset: usize) -> Self {
+impl<'a, T> Offset for SelectOne<'a, T> {
+    type Context = SelectOne<'a, T>;
+    fn offset(mut self, offset: usize) -> Self::Context {
         match self.selecter.limit {
             Some(limit) => {
-                self.selecter.limit = Some(Limit {
+                self.selecter.limit = Some(crate::dml::Limit {
                     count: limit.count,
                     offset: Some(offset),
                 });
             }
             None => {
-                self.selecter.limit = Some(Limit {
+                self.selecter.limit = Some(crate::dml::Limit {
                     count: 0,
                     offset: Some(offset),
                 });
@@ -171,8 +173,9 @@ impl<'a, T> OffsetEx for SelectOne<'a, T> {
     }
 }
 
-impl<'a, T> OrderByEx<'a> for SelectOne<'a, T> {
-    fn order_by(mut self, col_name: &'a str, desc: bool) -> Self {
+impl<'a, T> Order<'a> for SelectOne<'a, T> {
+    type Context = SelectOne<'a, T>;
+    fn order_by(mut self, col_name: &'a str, desc: bool) -> Self::Context {
         self.selecter.order_by = Some(OrderBy { col_name, desc });
         self
     }
@@ -216,17 +219,18 @@ where
     }
 }
 
-impl<'a, T> LimitEx for SelectMany<'a, T> {
+impl<'a, T> Limit for SelectMany<'a, T> {
+    type Context = SelectMany<'a, T>;
     fn limit(mut self, count: usize) -> Self {
         match self.selecter.limit {
             Some(limit) => {
-                self.selecter.limit = Some(Limit {
+                self.selecter.limit = Some(crate::dml::Limit {
                     count: count,
                     offset: limit.offset,
                 });
             }
             None => {
-                self.selecter.limit = Some(Limit {
+                self.selecter.limit = Some(crate::dml::Limit {
                     count,
                     offset: None,
                 });
@@ -237,24 +241,26 @@ impl<'a, T> LimitEx for SelectMany<'a, T> {
     }
 }
 
-impl<'a, T> WhereEx for SelectMany<'a, T> {
+impl<'a, T> Where for SelectMany<'a, T> {
+    type Context = SelectMany<'a, T>;
     fn cond(mut self, cond: crate::dml::CondExpr) -> Self {
         self.selecter.cond = Some(cond);
         self
     }
 }
 
-impl<'a, T> OffsetEx for SelectMany<'a, T> {
+impl<'a, T> Offset for SelectMany<'a, T> {
+    type Context = SelectMany<'a, T>;
     fn offset(mut self, offset: usize) -> Self {
         match self.selecter.limit {
             Some(limit) => {
-                self.selecter.limit = Some(Limit {
+                self.selecter.limit = Some(crate::dml::Limit {
                     count: limit.count,
                     offset: Some(offset),
                 });
             }
             None => {
-                self.selecter.limit = Some(Limit {
+                self.selecter.limit = Some(crate::dml::Limit {
                     count: 0,
                     offset: Some(offset),
                 });
@@ -265,7 +271,8 @@ impl<'a, T> OffsetEx for SelectMany<'a, T> {
     }
 }
 
-impl<'a, T> OrderByEx<'a> for SelectMany<'a, T> {
+impl<'a, T> Order<'a> for SelectMany<'a, T> {
+    type Context = SelectMany<'a, T>;
     fn order_by(mut self, col_name: &'a str, desc: bool) -> Self {
         self.selecter.order_by = Some(OrderBy { col_name, desc });
         self
