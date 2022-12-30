@@ -17,4 +17,4 @@ serde = {version = "1.0.150",features = ["derive"]}
 proc-macro = true
 
 [dev-dependencies]
-linq_rs = {path = "../linq"}
+# linq_rs = {path = "../linq"}

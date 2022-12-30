@@ -64,7 +64,7 @@ pub fn ddl(input: TokenStream) -> TokenStream {
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// use linq_rs::*;
 /// #[linq_rs::table]
 /// struct User {

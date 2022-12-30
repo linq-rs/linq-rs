@@ -1,6 +1,12 @@
 #[derive(Debug, Clone, PartialEq)]
 pub struct Columns<'a>(Vec<&'a str>);
 
+impl<'a> Columns<'a> {
+    pub fn col_names(&self) -> &[&'a str] {
+        &self.0
+    }
+}
+
 impl<'a, 'b> From<&'b [&'a str]> for Columns<'a> {
     fn from(v: &'b [&'a str]) -> Self {
         Self(v.to_vec())

@@ -2,9 +2,9 @@ use std::marker::PhantomData;
 
 use crate::{dml::Inserter, driver::InsertSupport, Variant};
 
-use super::{ColumnValue, Table};
+use super::{Column, ColumnValue, Table};
 
-pub trait InsertEx {
+pub trait Insert {
     type Context<'a>;
     fn insert<'a>(self) -> Self::Context<'a>;
 }
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<T> InsertEx for T
+impl<T> Insert for T
 where
     T: Table + Default,
 {
@@ -46,6 +46,16 @@ where
         let mut values = vec![];
 
         let mut primary_check = false;
+
+        // If primary col support auto inc, skip primary col value null check
+        for col in T::cols() {
+            match col {
+                Column::Primary(_, autoinc) => {
+                    primary_check = *autoinc;
+                }
+                _ => {}
+            }
+        }
 
         for value in self.into_values() {
             match value {

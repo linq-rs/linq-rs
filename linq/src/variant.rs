@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use num::{BigInt, BigRational};
 
 /// LINQ ir datetime type import from chrono.
@@ -20,39 +22,104 @@ pub enum Variant {
     Null,
 }
 
-impl From<i64> for Variant {
-    fn from(v: i64) -> Self {
-        Variant::Int(v)
+impl Display for Variant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Int(v) => {
+                write!(f, "{}", v)
+            }
+            Self::BigInt(v) => {
+                write!(f, "{}", v)
+            }
+            Self::Float(v) => {
+                write!(f, "{}", v)
+            }
+            Self::BigFloat(v) => {
+                write!(f, "{}", v)
+            }
+            Self::String(v) => {
+                write!(f, "{}", v)
+            }
+            Self::Bytes(v) => {
+                write!(f, "{:X?}", v)
+            }
+            Self::DateTime(v) => {
+                write!(f, "{}", v)
+            }
+            Self::Timestamp(v) => {
+                write!(f, "{}", v)
+            }
+            Self::Null => {
+                write!(f, "NULL",)
+            }
+        }
     }
 }
 
-impl From<i32> for Variant {
-    fn from(v: i32) -> Self {
-        Variant::Int(v as i64)
-    }
+////////////////////////////////////////////////////////////////////////////////////
+/// Integer like convert
+
+/// Implement int convert macro
+macro_rules! impl_int_convert {
+    ($num: ty) => {
+        impl From<$num> for Variant {
+            fn from(v: $num) -> Self {
+                Variant::Int(v as i64)
+            }
+        }
+
+        impl TryFrom<Variant> for $num {
+            type Error = anyhow::Error;
+            fn try_from(value: Variant) -> Result<Self, Self::Error> {
+                match value {
+                    Variant::Int(v) => Ok(v as $num),
+                    _ => Err(anyhow::format_err!("Variant type mismatch")),
+                }
+            }
+        }
+    };
 }
 
-impl From<usize> for Variant {
-    fn from(v: usize) -> Self {
-        Variant::Int(v as i64)
-    }
+impl_int_convert!(i8);
+impl_int_convert!(i16);
+impl_int_convert!(i32);
+impl_int_convert!(i64);
+impl_int_convert!(usize);
+impl_int_convert!(u8);
+impl_int_convert!(u16);
+impl_int_convert!(u32);
+impl_int_convert!(u64);
+
+////////////////////////////////////////////////////////////////////////////////////
+/// Float like convert
+
+/// Implement float convert macro
+macro_rules! impl_float_convert {
+    ($num: ty) => {
+        impl From<$num> for Variant {
+            fn from(v: $num) -> Self {
+                Variant::Float(v as f64)
+            }
+        }
+
+        impl TryFrom<Variant> for $num {
+            type Error = anyhow::Error;
+            fn try_from(value: Variant) -> Result<Self, Self::Error> {
+                match value {
+                    Variant::Float(v) => Ok(v as $num),
+                    _ => Err(anyhow::format_err!("Variant type mismatch")),
+                }
+            }
+        }
+    };
 }
+
+impl_float_convert!(f32);
+impl_float_convert!(f64);
 
 impl From<BigInt> for Variant {
     fn from(v: BigInt) -> Self {
         Variant::BigInt(v)
-    }
-}
-
-impl From<f64> for Variant {
-    fn from(v: f64) -> Self {
-        Variant::Float(v)
-    }
-}
-
-impl From<f32> for Variant {
-    fn from(v: f32) -> Self {
-        Variant::Float(v as f64)
     }
 }
 
@@ -61,6 +128,9 @@ impl From<BigRational> for Variant {
         Variant::BigFloat(v)
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////
+/// StringLike convert
 
 impl<'a> From<&'a str> for Variant {
     fn from(v: &'a str) -> Self {
@@ -74,6 +144,19 @@ impl From<String> for Variant {
     }
 }
 
+impl TryFrom<Variant> for String {
+    type Error = anyhow::Error;
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value {
+            Variant::String(v) => Ok(v),
+            _ => Err(anyhow::format_err!("Variant type mismatch")),
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+/// Bytes like convert
+
 impl<'a> From<&'a [u8]> for Variant {
     fn from(v: &'a [u8]) -> Self {
         Variant::Bytes(v.to_owned())
@@ -85,6 +168,9 @@ impl From<Vec<u8>> for Variant {
         Variant::Bytes(v)
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////
+/// Date like convert
 
 impl From<DateTime> for Variant {
     fn from(v: DateTime) -> Self {
@@ -102,31 +188,14 @@ impl TryFrom<Variant> for DateTime {
     }
 }
 
-impl TryFrom<Variant> for usize {
-    type Error = anyhow::Error;
-    fn try_from(value: Variant) -> Result<Self, Self::Error> {
-        match value {
-            Variant::Int(v) => Ok(v as usize),
-            _ => Err(anyhow::format_err!("Variant type mismatch")),
-        }
-    }
-}
-
-impl TryFrom<Variant> for String {
-    type Error = anyhow::Error;
-    fn try_from(value: Variant) -> Result<Self, Self::Error> {
-        match value {
-            Variant::String(v) => Ok(v),
-            _ => Err(anyhow::format_err!("Variant type mismatch")),
-        }
-    }
-}
-
 impl From<Timestamp> for Variant {
     fn from(v: Timestamp) -> Self {
         Variant::Timestamp(v)
     }
 }
+
+/// end convert impl
+////////////////////////////////////////////////////////////////////////////////////
 
 /// LINQ ir basic type enum
 #[derive(Debug, Clone, PartialEq)]

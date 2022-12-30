@@ -17,3 +17,5 @@ pub use linq_proc_macro::*;
 pub mod orm;
 
 pub use anyhow;
+
+pub use orm::{DeleteObject, DeleteWhereCond, Insert, SelectEx, UpdateEx};

@@ -1,27 +1,16 @@
-use crate::Variant;
+use crate::{
+    orm::{ColumnValue, Table},
+    Variant,
+};
 
-use super::table::{ColumnValue, Table};
+use super::{Column, OneToMany, OneToOne, Primary};
 
+/// Provide common trait API for [`Column`], [`OneToOne`] and [`OneToMany`]
+///
+/// The framework using this trait to get/set value from table structures
 pub trait ColumnLike {
     fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue;
     fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()>;
-}
-
-#[derive(Debug, Clone)]
-pub struct Primary<T, const AUTOINC: bool>
-where
-    T: Into<Variant> + TryFrom<Variant>,
-{
-    pub value: Option<T>,
-}
-
-impl<T, const AUTOINC: bool> Default for Primary<T, AUTOINC>
-where
-    T: Into<Variant> + TryFrom<Variant>,
-{
-    fn default() -> Self {
-        Self { value: None }
-    }
 }
 
 impl<T, const AUTOINC: bool> ColumnLike for Primary<T, AUTOINC>
@@ -58,23 +47,6 @@ where
             }
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Column<T>
-where
-    T: Into<Variant> + TryFrom<Variant>,
-{
-    pub value: Option<T>,
-}
-
-impl<T> Default for Column<T>
-where
-    T: Into<Variant> + TryFrom<Variant>,
-{
-    fn default() -> Self {
-        Self { value: None }
     }
 }
 
@@ -115,23 +87,6 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct OneToOne<T>
-where
-    T: Table,
-{
-    pub value: Option<T>,
-}
-
-impl<T> Default for OneToOne<T>
-where
-    T: Table,
-{
-    fn default() -> Self {
-        Self { value: None }
-    }
-}
-
 impl<T> ColumnLike for OneToOne<T>
 where
     T: Table + Default,
@@ -156,23 +111,6 @@ where
             }
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct OneToMany<T>
-where
-    T: Table,
-{
-    pub value: Option<Vec<T>>,
-}
-
-impl<T> Default for OneToMany<T>
-where
-    T: Table,
-{
-    fn default() -> Self {
-        Self { value: None }
     }
 }
 
