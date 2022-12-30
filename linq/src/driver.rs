@@ -13,7 +13,7 @@ pub trait QueryIterator {
     async fn get_by_name(&mut self, name: &str) -> anyhow::Result<Variant>;
 }
 
-/// Trait to support executing [`SELECT`] expr.
+/// Trait to support executing [`SELECT`](https://www.w3schools.com/sql/sql_select.asp) expr.
 ///
 /// # Examples
 ///
@@ -32,11 +32,12 @@ pub trait QueryIterator {
 #[async_trait::async_trait]
 pub trait SelectSupport<'a> {
     type SelectResult: QueryIterator;
+
     /// Execute select stmt
     async fn select(&mut self, selecter: &dml::Selecter<'a>) -> anyhow::Result<Self::SelectResult>;
 }
 
-/// Trait to support executing [`INSERT`] expr.
+/// Trait to support executing [`UPDATE`](https://www.w3schools.com/sql/sql_update.asp) expr.
 #[async_trait::async_trait]
 pub trait UpdateSupport<'a> {
     /// Execute update stmt
@@ -47,7 +48,7 @@ pub trait UpdateSupport<'a> {
     ) -> anyhow::Result<usize>;
 }
 
-/// Trait to support executing [`INSERT`] expr.
+/// Trait to support executing [`INSERT`](https://www.w3schools.com/sql/sql_insert.asp) expr.
 #[async_trait::async_trait]
 pub trait InsertSupport<'a> {
     /// Execute insert stmt
@@ -58,7 +59,7 @@ pub trait InsertSupport<'a> {
     ) -> anyhow::Result<usize>;
 }
 
-/// Trait to support executing [`DELETE`] expr.
+/// Trait to support executing [`DELETE`](https://www.w3schools.com/sql/sql_delete.asp) expr.
 #[async_trait::async_trait]
 pub trait DeleteSupport<'a> {
     /// Execute delete stmt

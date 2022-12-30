@@ -19,5 +19,3 @@ pretty_env_logger = "0.4.0"
 async-std = {version = "1.11.0", features = ["attributes", "default"]}
 linq_proc_macro = {path = "../proc_macro"}
 
-[features]
-null_driver = []

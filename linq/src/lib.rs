@@ -16,8 +16,4 @@ pub use linq_proc_macro::*;
 /// LINQ to support orm api.
 pub mod orm;
 
-/// LINQ driver implementation example, including some unit testing utilities
-#[cfg(feature = "null_driver")]
-pub mod null_driver;
-
 pub use anyhow;
