@@ -1,6 +1,6 @@
-use crate::Variant;
+use crate::{orm::Table, Variant};
 
-use super::{Column, Primary};
+use super::{Column, OneToMany, OneToOne, Primary};
 
 macro_rules! impl_num_into {
     ($from:ty,$to:ty) => {
@@ -79,5 +79,23 @@ impl<'a> From<&'a str> for Column<String> {
         Column {
             value: Some(v.to_owned()),
         }
+    }
+}
+
+impl<T> From<T> for OneToOne<T>
+where
+    T: Table,
+{
+    fn from(v: T) -> OneToOne<T> {
+        OneToOne { value: Some(v) }
+    }
+}
+
+impl<T> From<Vec<T>> for OneToMany<T>
+where
+    T: Table,
+{
+    fn from(v: Vec<T>) -> OneToMany<T> {
+        OneToMany { value: Some(v) }
     }
 }

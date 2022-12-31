@@ -33,6 +33,7 @@ async fn test_crud() -> anyhow::Result<()> {
         id: 1usize.into(),
         first_name: "hello".into(),
         last_name: "world".into(),
+        cards: vec![Card::default()].into(),
         ..Default::default()
     };
 
