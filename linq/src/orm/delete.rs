@@ -45,12 +45,12 @@ where
     T: Table + Default,
 {
     type Context<'a> = DeleteObjectContext<'a, T>;
-    fn delete<'a>(mut self) -> Self::Context<'a> {
+    fn delete<'a>(self) -> Self::Context<'a> {
         let mut condexpr = None;
 
         for value in self.into_values() {
             match value {
-                ColumnValue::Primary(col_name, _, variant) => {
+                ColumnValue::Simple(col_name, variant) => {
                     if let Variant::Null = variant {
                         continue;
                     }

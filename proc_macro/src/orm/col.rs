@@ -31,22 +31,21 @@ impl ColumnDef {
         return LitStr::new(&self.name.to_string(), self.name.span());
     }
 
-    pub fn primary_autoinc(&self) -> bool {
-        for attr in &self.attrs {
-            match attr {
-                ColumnAttr::Primary(autoinc) => return *autoinc,
-                _ => {}
-            }
-        }
+    // pub fn primary_autoinc(&self) -> bool {
+    //     for attr in &self.attrs {
+    //         match attr {
+    //             ColumnAttr::Primary(autoinc) => return *autoinc,
+    //             _ => {}
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     pub fn col_type(&self) -> ColumnType {
         for attr in &self.attrs {
             match attr {
-                ColumnAttr::OneToMany(_) => return ColumnType::OneToMany,
-                ColumnAttr::OneToOne(_) => return ColumnType::OneToOne,
+                ColumnAttr::Cascade(_) => return ColumnType::Cascade,
                 ColumnAttr::Primary(_) => return ColumnType::Primary,
                 _ => {}
             }
@@ -58,8 +57,7 @@ impl ColumnDef {
     pub fn related(&self) -> syn::Result<Related> {
         for attr in &self.attrs {
             match attr {
-                ColumnAttr::OneToMany(related) => return Ok(related.clone()),
-                ColumnAttr::OneToOne(related) => return Ok(related.clone()),
+                ColumnAttr::Cascade(related) => return Ok(related.clone()),
                 _ => {}
             }
         }
@@ -76,38 +74,22 @@ impl CodeGen for ColumnDef {
         let name = &self.name;
         let ty = &self.col_type;
 
-        match self.col_type() {
-            ColumnType::Primary => {
-                let autoinc = self.primary_autoinc();
-                Ok(quote! {
-                    #name : ::linq_rs::orm::codegen::Primary<#ty,#autoinc>
-                })
-            }
-            ColumnType::Simple => Ok(quote! {
-                #name : ::linq_rs::orm::codegen::Column<#ty>
-            }),
-            ColumnType::OneToOne => Ok(quote! {
-                #name : ::linq_rs::orm::codegen::OneToOne<#ty>
-            }),
-            ColumnType::OneToMany => Ok(quote! {
-                #name : ::linq_rs::orm::codegen::OneToMany<#ty>
-            }),
-        }
+        Ok(quote! {
+            #name : #ty
+        })
     }
 }
 
 pub enum ColumnType {
     Simple,
-    OneToOne,
-    OneToMany,
+    Cascade,
     Primary,
 }
 
 #[derive(Clone)]
 pub enum ColumnAttr {
     Name(LitStr),
-    OneToOne(Related),
-    OneToMany(Related),
+    Cascade(Related),
     Primary(bool),
 }
 
@@ -118,8 +100,7 @@ impl ColumnAttr {
             match name.as_str() {
                 "primary" => Self::parse_primary(field, attr),
                 "column" => Self::parse_col_name(field, attr),
-                "one_to_one" => Self::parse_one_to_one(field, attr),
-                "one_to_many" => Self::parse_one_to_many(field, attr),
+                "cascade" => Self::parse_cascade(field, attr),
                 _ => {
                     return Err(syn::Error::new(
                         path.span(),
@@ -154,20 +135,11 @@ impl ColumnAttr {
         })?))
     }
 
-    fn parse_one_to_one(field: &Ident, attr: &Attribute) -> syn::Result<Self> {
-        Ok(Self::OneToOne(attr.parse_args().map_err(|err| {
+    fn parse_cascade(field: &Ident, attr: &Attribute) -> syn::Result<Self> {
+        Ok(Self::Cascade(attr.parse_args().map_err(|err| {
             syn::Error::new(
                 err.span(),
                 format!("parse one_to_one({}) attr error: {}", field, err),
-            )
-        })?))
-    }
-
-    fn parse_one_to_many(field: &Ident, attr: &Attribute) -> syn::Result<Self> {
-        Ok(Self::OneToMany(attr.parse_args().map_err(|err| {
-            syn::Error::new(
-                err.span(),
-                format!("parse one_to_many({}) attr error: {}", field, err),
             )
         })?))
     }

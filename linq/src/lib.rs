@@ -18,4 +18,4 @@ pub mod orm;
 
 pub use anyhow;
 
-pub use orm::{DeleteObject, DeleteWhereCond, Insert, SelectEx, UpdateEx};
+pub use orm::{DeleteObject, DeleteWhereCond, Insert, SelectEx, Update};

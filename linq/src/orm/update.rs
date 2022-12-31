@@ -6,9 +6,9 @@ use crate::{
     Variant,
 };
 
-use super::{ColumnValue, Table, Where};
+use super::{ColumnValue, Table, TableEx, Where};
 
-pub trait UpdateEx {
+pub trait Update {
     type Context<'a>;
     fn update<'a>(self) -> Self::Context<'a>;
 }
@@ -47,16 +47,18 @@ where
     }
 }
 
-impl<T> UpdateEx for T
+impl<T> Update for T
 where
     T: Table + Default,
 {
     type Context<'a> = UpdateContext<'a, T>;
-    fn update<'a>(mut self) -> Self::Context<'a> {
+    fn update<'a>(self) -> Self::Context<'a> {
         // let mut cond = None;
 
         let mut cols = vec![];
         let mut values = vec![];
+
+        let (primary_col_name, auto_inc) = T::table_primary_col().expect("Not found primary col");
 
         let mut primary = None;
 
@@ -67,19 +69,8 @@ where
                         continue;
                     }
 
-                    cols.push(col_name);
-
-                    values.push(variant);
-                }
-                ColumnValue::Primary(col_name, auto_inc, variant) => {
-                    if let Variant::Null = variant {
-                        continue;
-                    }
-
-                    primary = Some((col_name, auto_inc, variant.clone()));
-
-                    if auto_inc {
-                        continue;
+                    if primary_col_name == col_name {
+                        primary = Some((col_name, auto_inc, variant.clone()));
                     }
 
                     cols.push(col_name);

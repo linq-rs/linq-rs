@@ -29,8 +29,6 @@ where
     {
         let mut rows = d.select(&self.selecter).await?;
 
-        let mut result: T = Default::default();
-
         while rows.next().await? {
             let mut values = vec![];
 
@@ -48,12 +46,10 @@ where
                 }
             }
 
-            result.from_values(values)?;
-
-            break;
+            return Ok(T::from_values(values)?);
         }
 
-        Ok(result)
+        unimplemented!()
     }
 }
 
@@ -91,9 +87,7 @@ where
                 }
             }
 
-            let mut t: T = Default::default();
-
-            t.from_values(values)?;
+            let t = T::from_values(values)?;
 
             result.push(t);
         }

@@ -1,153 +1,125 @@
 use crate::{
     orm::{ColumnValue, Table},
-    Variant,
+    DateTime, Timestamp, Variant,
 };
-
-use super::{Column, OneToMany, OneToOne, Primary};
 
 /// Provide common trait API for [`Column`], [`OneToOne`] and [`OneToMany`]
 ///
 /// The framework using this trait to get/set value from table structures
-pub trait ColumnLike {
-    fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue;
-    fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()>;
+pub trait ColumnLike: Sized {
+    fn into_column_value(self, col_name: &'static str) -> ColumnValue;
+    fn from_column_value(value: ColumnValue) -> anyhow::Result<Self>;
 }
 
-impl<T, const AUTOINC: bool> ColumnLike for Primary<T, AUTOINC>
+pub fn from_column_value<C>(value: ColumnValue) -> anyhow::Result<C>
 where
-    T: Into<Variant> + TryFrom<Variant, Error = anyhow::Error>,
+    C: ColumnLike,
 {
-    fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
-        if let Some(v) = self.value.take() {
-            ColumnValue::Primary(col_name, AUTOINC, v.into())
-        } else {
-            ColumnValue::Primary(col_name, AUTOINC, Variant::Null)
+    C::from_column_value(value)
+}
+
+macro_rules! def_column_like {
+    ($ty:ty) => {
+        impl ColumnLike for $ty {
+            fn into_column_value(self, col_name: &'static str) -> ColumnValue {
+                ColumnValue::Simple(col_name, self.into())
+            }
+
+            fn from_column_value(value: ColumnValue) -> anyhow::Result<Self> {
+                match value {
+                    ColumnValue::Simple(col_name, value) => {
+                        if let Variant::Null = value {
+                            Err(anyhow::format_err!("Column({}) can't be none", col_name))
+                        } else {
+                            value.try_into()
+                        }
+                    }
+                    _ => Err(anyhow::format_err!("Column type mismatch")),
+                }
+            }
+        }
+    };
+}
+
+def_column_like!(i8);
+def_column_like!(i16);
+def_column_like!(i32);
+def_column_like!(i64);
+def_column_like!(u8);
+def_column_like!(u16);
+def_column_like!(u32);
+def_column_like!(u64);
+def_column_like!(usize);
+def_column_like!(String);
+def_column_like!(Vec<u8>);
+def_column_like!(DateTime);
+def_column_like!(Timestamp);
+
+impl<T> ColumnLike for Option<T>
+where
+    T: ColumnLike,
+{
+    fn into_column_value(self, col_name: &'static str) -> ColumnValue {
+        match self {
+            Some(v) => v.into_column_value(col_name),
+            None => ColumnValue::Simple(col_name, Variant::Null),
         }
     }
 
-    fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
-        match value {
-            ColumnValue::Simple(_, value) => {
-                if let Variant::Null = value {
-                    self.value = None;
+    fn from_column_value(value: ColumnValue) -> anyhow::Result<Self> {
+        match &value {
+            ColumnValue::Simple(_, v) => {
+                if let Variant::Null = v {
+                    Ok(None)
                 } else {
-                    self.value = Some(value.try_into()?);
+                    Ok(Some(T::from_column_value(value)?))
                 }
-
-                Ok(())
-            }
-            ColumnValue::Primary(_, _, value) => {
-                if let Variant::Null = value {
-                    self.value = None;
-                } else {
-                    self.value = Some(value.try_into()?);
-                }
-
-                Ok(())
             }
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }
     }
 }
 
-impl<T> ColumnLike for Column<T>
+impl<T> ColumnLike for T
 where
-    T: Into<Variant> + TryFrom<Variant, Error = anyhow::Error>,
+    T: Table,
 {
-    fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
-        if let Some(v) = self.value.take() {
-            ColumnValue::Simple(col_name, v.into())
-        } else {
-            ColumnValue::Simple(col_name, Variant::Null)
-        }
+    fn into_column_value(self, col_name: &'static str) -> ColumnValue {
+        ColumnValue::OneToOne(col_name, self.into_values())
     }
 
-    fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
+    fn from_column_value(value: ColumnValue) -> anyhow::Result<Self> {
         match value {
-            ColumnValue::Simple(_, value) => {
-                if let Variant::Null = value {
-                    self.value = None;
-                } else {
-                    self.value = Some(value.try_into()?);
-                }
-
-                Ok(())
-            }
-            ColumnValue::Primary(_, _, value) => {
-                if let Variant::Null = value {
-                    self.value = None;
-                } else {
-                    self.value = Some(value.try_into()?);
-                }
-
-                Ok(())
-            }
+            ColumnValue::OneToOne(_, values) => Ok(T::from_values(values)?),
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }
     }
 }
 
-impl<T> ColumnLike for OneToOne<T>
+impl<T> ColumnLike for Vec<T>
 where
-    T: Table + Default,
+    T: Table,
 {
-    fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
-        if let Some(mut v) = self.value.take() {
-            ColumnValue::OneToOne(col_name, v.into_values())
-        } else {
-            ColumnValue::OneToOne(col_name, vec![])
+    fn into_column_value(self, col_name: &'static str) -> ColumnValue {
+        let mut rows = vec![];
+
+        for row in self {
+            rows.push(row.into_values());
         }
+
+        ColumnValue::OneToMany(col_name, rows)
     }
 
-    fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
-        match value {
-            ColumnValue::OneToOne(_, values) => {
-                let mut v: T = Default::default();
-
-                v.from_values(values)?;
-
-                self.value = Some(v);
-                Ok(())
-            }
-            _ => Err(anyhow::format_err!("Column type mismatch")),
-        }
-    }
-}
-
-impl<T> ColumnLike for OneToMany<T>
-where
-    T: Table + Default,
-{
-    fn into_column_value(&mut self, col_name: &'static str) -> ColumnValue {
-        if let Some(v) = self.value.take() {
-            let mut rows = vec![];
-
-            for mut row in v {
-                rows.push(row.into_values());
-            }
-
-            ColumnValue::OneToMany(col_name, rows)
-        } else {
-            ColumnValue::OneToMany(col_name, vec![])
-        }
-    }
-
-    fn from_column_value(&mut self, value: ColumnValue) -> anyhow::Result<()> {
+    fn from_column_value(value: ColumnValue) -> anyhow::Result<Self> {
         match value {
             ColumnValue::OneToMany(_, rows) => {
                 let mut values = vec![];
 
                 for row in rows {
-                    let mut v: T = Default::default();
-
-                    v.from_values(row)?;
-
-                    values.push(v);
+                    values.push(T::from_values(row)?);
                 }
 
-                self.value = Some(values);
-
-                Ok(())
+                Ok(values)
             }
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }

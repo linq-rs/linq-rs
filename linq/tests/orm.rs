@@ -1,22 +1,27 @@
 use linq_rs::*;
 
 mod utils;
+#[allow(unused)]
 use utils::*;
 
+use serde::{Deserialize, Serialize};
+
 #[table]
+#[derive(Serialize, Deserialize)]
 struct User {
     #[column("id_")]
     #[primary(autoinc)]
-    id: i32,
+    id: Option<i32>,
     first_name: String,
     last_name: String,
-    #[one_to_many(from=col_id to=col_user_id)]
-    cards: Card,
-    created_time: DateTime,
-    updated_time: DateTime,
+    #[cascade(from=col_id to=col_user_id)]
+    cards: Vec<Card>,
+    created_time: Option<DateTime>,
+    updated_time: Option<DateTime>,
 }
 
 #[table]
+#[derive(Serialize, Deserialize)]
 struct Card {
     #[primary]
     id: usize,
@@ -30,14 +35,12 @@ async fn test_crud() -> anyhow::Result<()> {
 
     #[allow(unused)]
     let mut user = User {
-        id: 1usize.into(),
+        id: Some(1),
         first_name: "hello".into(),
         last_name: "world".into(),
         cards: vec![Card::default()].into(),
         ..Default::default()
     };
-
-    assert_eq!(user.id.value, Some(1));
 
     user.insert().exec(&mut driver).await?;
 

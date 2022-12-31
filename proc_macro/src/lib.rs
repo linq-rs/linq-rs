@@ -15,6 +15,8 @@ mod variant;
 mod orm;
 use orm::*;
 
+mod utils;
+
 /// Building Single-Row SQL dml statements
 #[proc_macro]
 pub fn rql(ident: TokenStream) -> TokenStream {
@@ -95,6 +97,8 @@ pub fn table(attrs: TokenStream, item: TokenStream) -> TokenStream {
         .expect("Parse table struct error")
         .gen_ir_code()
         .expect("Generate table code error");
+
+    // eprintln!("{}", token_stream);
 
     token_stream.into()
 }

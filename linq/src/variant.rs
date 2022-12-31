@@ -169,6 +169,16 @@ impl From<Vec<u8>> for Variant {
     }
 }
 
+impl TryFrom<Variant> for Vec<u8> {
+    type Error = anyhow::Error;
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value {
+            Variant::Bytes(v) => Ok(v),
+            _ => Err(anyhow::format_err!("Variant type mismatch")),
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 /// Date like convert
 
@@ -191,6 +201,16 @@ impl TryFrom<Variant> for DateTime {
 impl From<Timestamp> for Variant {
     fn from(v: Timestamp) -> Self {
         Variant::Timestamp(v)
+    }
+}
+
+impl TryFrom<Variant> for Timestamp {
+    type Error = anyhow::Error;
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value {
+            Variant::Timestamp(datetime) => Ok(datetime),
+            _ => Err(anyhow::format_err!("Variant type mismatch")),
+        }
     }
 }
 

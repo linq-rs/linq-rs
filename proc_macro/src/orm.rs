@@ -2,7 +2,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use syn::{Fields, ItemStruct, LitStr, Visibility};
 
-use crate::gen::CodeGen;
+use crate::{gen::CodeGen, utils::extract_type_from_vec};
 
 mod col;
 use col::*;
@@ -15,6 +15,7 @@ pub struct Table {
     primary_field: Ident,
     auto_inc: bool,
     vis: Visibility,
+    item: ItemStruct,
 }
 
 impl Table {
@@ -58,16 +59,10 @@ impl Table {
             if col.name == primary_field {
                 for attr in &col.attrs {
                     match attr {
-                        ColumnAttr::OneToMany(_) => {
+                        ColumnAttr::Cascade(_) => {
                             return Err(syn::Error::new(
                                 primary_field.span(),
                                 "Tag primary key on one_to_many col",
-                            ));
-                        }
-                        ColumnAttr::OneToOne(_) => {
-                            return Err(syn::Error::new(
-                                primary_field.span(),
-                                "Tag primary key on one_to_one col",
                             ));
                         }
                         _ => {}
@@ -83,6 +78,7 @@ impl Table {
             primary_field,
             auto_inc,
             vis: item.vis.clone(),
+            item,
         })
     }
 }
@@ -98,7 +94,10 @@ impl Table {
             cols.push(col.gen_ir_code()?);
         }
 
+        let attrs = &self.item.attrs;
+
         Ok(quote! {
+            #(#attrs)*
             #[derive(Default)]
             #vis struct #ident {
                 #(pub #cols,)*
@@ -154,39 +153,32 @@ impl Table {
                     let auto_inc = self.auto_inc;
                     quote!(::linq_rs::orm::Column::Primary(#col_name,#auto_inc))
                 }
-                ColumnType::OneToOne => {
+                ColumnType::Cascade => {
                     let related = col.related()?;
                     let ref_col_name_fn =
                         format_ident!("{}", related.from, span = related.from.span());
                     let col_type = &col.col_type;
+
                     let foreign_key_col_name_fn =
                         format_ident!("{}", related.to, span = related.to.span());
 
                     let self_type = &self.ident;
 
-                    quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
-                       name: #col_name,
-                       ref_col: #self_type::#ref_col_name_fn(),
-                       table_name: #col_type::table_name_const(),
-                       foreign_key_col: #col_type::#foreign_key_col_name_fn()
-                    }))
-                }
-                ColumnType::OneToMany => {
-                    let related = col.related()?;
-                    let ref_col_name_fn =
-                        format_ident!("{}", related.from, span = related.from.span());
-                    let col_type = &col.col_type;
-                    let foreign_key_col_name_fn =
-                        format_ident!("{}", related.to, span = related.to.span());
-
-                    let self_type = &self.ident;
-
-                    quote!(::linq_rs::orm::Column::OneToMany(::linq_rs::orm::Cascade {
-                       name: #col_name,
-                       ref_col: #self_type::#ref_col_name_fn(),
-                       table_name: #col_type::table_name_const(),
-                       foreign_key_col: #col_type::#foreign_key_col_name_fn()
-                    }))
+                    if let Some(vec_type) = extract_type_from_vec(col_type) {
+                        quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
+                           name: #col_name,
+                           ref_col: #self_type::#ref_col_name_fn(),
+                           table_name: #vec_type::table_name_const(),
+                           foreign_key_col: #vec_type::#foreign_key_col_name_fn()
+                        }))
+                    } else {
+                        quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
+                           name: #col_name,
+                           ref_col: #self_type::#ref_col_name_fn(),
+                           table_name: #col_type::table_name_const(),
+                           foreign_key_col: #col_type::#foreign_key_col_name_fn()
+                        }))
+                    }
                 }
             });
         }
@@ -231,31 +223,34 @@ impl Table {
     fn gen_write_fn(&self) -> syn::Result<TokenStream> {
         let mut cols = vec![];
 
+        let mut idents = vec![];
+
         for col in &self.cols {
             let col_name = col.col_name();
             let ident = &col.name;
+            let ty = &col.col_type;
 
             cols.push(quote! {
-                #col_name => {
-                    self.#ident.from_column_value(value)?;
-                }
+                assert_eq!(values[0].col_name(), #col_name);
+                let #ident = ::linq_rs::orm::codegen::from_column_value::<#ty>(values.remove(0))?;
             });
+
+            idents.push(ident);
         }
 
+        let count = self.cols.len();
+
         Ok(quote! {
-            fn from_values(&mut self, values: Vec<::linq_rs::orm::ColumnValue>) -> ::linq_rs::anyhow::Result<()> {
+            fn from_values(mut values: Vec<::linq_rs::orm::ColumnValue>) -> ::linq_rs::anyhow::Result<Self> {
                 use ::linq_rs::orm::codegen::ColumnLike;
 
-                for value in values {
-                    match value.col_name() {
-                        #(#cols,)*
-                        _ => {
-                            return Err(::linq_rs::anyhow::format_err!("Unknown col: {}",value.col_name()));
-                        }
-                    }
-                }
+                assert_eq!(values.len(), #count);
 
-                Ok(())
+                #(#cols)*
+
+                Ok(Self {
+                    #(#idents,)*
+                })
             }
         })
     }
@@ -273,7 +268,7 @@ impl Table {
         }
 
         Ok(quote! {
-            fn into_values(&mut self) ->  Vec<::linq_rs::orm::ColumnValue> {
+            fn into_values(mut self) ->  Vec<::linq_rs::orm::ColumnValue> {
                 use ::linq_rs::orm::codegen::ColumnLike;
 
                 vec![#(#cols,)*]

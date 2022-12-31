@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{dml::Inserter, driver::InsertSupport, Variant};
 
-use super::{Column, ColumnValue, Table};
+use super::{ColumnValue, Table, TableEx};
 
 pub trait Insert {
     type Context<'a>;
@@ -39,23 +39,15 @@ where
     T: Table + Default,
 {
     type Context<'a> = InsertContext<'a, T>;
-    fn insert<'a>(mut self) -> Self::Context<'a> {
+    fn insert<'a>(self) -> Self::Context<'a> {
         // let mut cond = None;
 
         let mut cols = vec![];
         let mut values = vec![];
 
-        let mut primary_check = false;
+        let (primary_col_name, auto_inc) = T::table_primary_col().expect("Not found primary col");
 
-        // If primary col support auto inc, skip primary col value null check
-        for col in T::cols() {
-            match col {
-                Column::Primary(_, autoinc) => {
-                    primary_check = *autoinc;
-                }
-                _ => {}
-            }
-        }
+        let mut primary_check = auto_inc;
 
         for value in self.into_values() {
             match value {
@@ -64,25 +56,33 @@ where
                         continue;
                     }
 
-                    cols.push(col_name);
+                    if primary_col_name == col_name {
+                        primary_check = true;
 
-                    values.push(variant);
-                }
-                ColumnValue::Primary(col_name, auto_inc, variant) => {
-                    if let Variant::Null = variant {
-                        continue;
-                    }
-
-                    primary_check = true;
-
-                    if auto_inc {
-                        continue;
+                        if auto_inc {
+                            continue;
+                        }
                     }
 
                     cols.push(col_name);
 
                     values.push(variant);
                 }
+                // ColumnValue::Primary(col_name, auto_inc, variant) => {
+                //     if let Variant::Null = variant {
+                //         continue;
+                //     }
+
+                //     primary_check = true;
+
+                //     if auto_inc {
+                //         continue;
+                //     }
+
+                //     cols.push(col_name);
+
+                //     values.push(variant);
+                // }
                 _ => {
                     continue;
                 }

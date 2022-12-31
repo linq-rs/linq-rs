@@ -6,9 +6,29 @@ pub trait Table: Sized {
 
     fn cols() -> &'static [Column];
 
-    fn from_values(&mut self, values: Vec<ColumnValue>) -> anyhow::Result<()>;
+    fn from_values(values: Vec<ColumnValue>) -> anyhow::Result<Self>;
 
-    fn into_values(&mut self) -> Vec<ColumnValue>;
+    fn into_values(self) -> Vec<ColumnValue>;
+}
+
+pub trait TableEx {
+    fn table_primary_col() -> Option<(&'static str, bool)>;
+}
+
+impl<T> TableEx for T
+where
+    T: Table,
+{
+    fn table_primary_col() -> Option<(&'static str, bool)> {
+        for col in Self::cols() {
+            match col {
+                Column::Primary(name, auto_inc) => return Some((name, *auto_inc)),
+                _ => {}
+            }
+        }
+
+        return None;
+    }
 }
 
 pub enum Column {
@@ -32,7 +52,6 @@ pub struct Cascade {
 }
 
 pub enum ColumnValue {
-    Primary(&'static str, bool, Variant),
     Simple(&'static str, Variant),
     OneToOne(&'static str, Vec<ColumnValue>),
     OneToMany(&'static str, Vec<Vec<ColumnValue>>),
@@ -41,7 +60,6 @@ pub enum ColumnValue {
 impl ColumnValue {
     pub fn col_name(&self) -> &'static str {
         match self {
-            Self::Primary(name, _, _) => name,
             Self::Simple(name, _) => name,
             Self::OneToOne(name, _) => name,
             Self::OneToMany(name, _) => name,
@@ -50,7 +68,6 @@ impl ColumnValue {
 
     pub fn into_simple_value(&self) -> anyhow::Result<Variant> {
         match self {
-            Self::Primary(_, _, value) => Ok(value.clone()),
             Self::Simple(_, value) => Ok(value.clone()),
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }
