@@ -9,7 +9,8 @@ use super::{Limit, Offset, Order, Where};
 
 use super::table::*;
 
-pub trait SelectEx {
+/// An extension trait which add select method to [`Table`] types
+pub trait Select {
     type Context<'a>;
     fn select<'a>() -> Self::Context<'a>;
 }
@@ -96,7 +97,7 @@ where
     }
 }
 
-impl<T> SelectEx for T
+impl<T> Select for T
 where
     T: Table + Sync + Send,
 {
@@ -175,7 +176,7 @@ impl<'a, T> Order<'a> for SelectOne<'a, T> {
     }
 }
 
-impl<T> SelectEx for Vec<T>
+impl<T> Select for Vec<T>
 where
     T: Table + Sync + Send,
 {
