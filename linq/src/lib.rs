@@ -14,6 +14,11 @@ pub mod orm;
 
 pub use anyhow;
 
+#[cfg(feature = "str_loader")]
+mod loader;
+#[cfg(feature = "str_loader")]
+pub use loader::*;
+
 pub use orm::{DeleteObject, DeleteWhereCond, Insert, Select, Update};
 
 /// Proc macros to build LINQ language ir data.

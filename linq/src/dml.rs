@@ -140,3 +140,12 @@ pub struct Updater<'a> {
     pub cols: Columns<'a>,
     pub cond: Option<CondExpr>,
 }
+
+/// DML expr definition
+#[derive(Debug, Clone, PartialEq)]
+pub enum DML<'a> {
+    Selecter(Selecter<'a>),
+    Updater(Updater<'a>),
+    Inserter(Inserter<'a>),
+    Deleter(Deleter<'a>),
+}
