@@ -30,21 +30,20 @@ pub use linq_proc_macro::rql_where;
 /// # Examples
 ///
 /// ```
-/// use linq_rs::*;
-/// #[linq_rs::table]
+/// use serde::{Deserialize, Serialize};
+///
+/// #[derive(linq_proc_macro::ORM, Serialize, Deserialize, Default)]
 /// struct User {
 ///     #[column("id_")]
-///     #[primary]
-///     id: usize,
+///     #[primary(autoinc)]
+///     id: Option<i32>,
 ///     first_name: String,
 ///     last_name: String,
 ///     #[cascade(from=col_id to=col_user_id)]
-///     cards: Card,
-///     created_time: DateTime,
-///     updated_time: DateTime,
+///     cards: Vec<Card>,
 /// }
 ///
-/// #[table]
+/// #[derive(linq_proc_macro::ORM, Serialize, Deserialize, Default)]
 /// struct Card {
 ///     #[primary]
 ///     id: usize,
@@ -52,4 +51,4 @@ pub use linq_proc_macro::rql_where;
 ///     card_no: String,
 /// }
 /// ```
-pub use linq_proc_macro::table;
+pub use linq_proc_macro::ORM;

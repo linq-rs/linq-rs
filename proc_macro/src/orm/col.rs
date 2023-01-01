@@ -1,5 +1,5 @@
 use proc_macro2::Ident;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{parse::Parse, Attribute, LitStr, Token, Type};
 
 use crate::gen::CodeGen;

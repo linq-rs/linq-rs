@@ -19,7 +19,21 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(table_name: Option<LitStr>, item: ItemStruct) -> syn::Result<Self> {
+    pub fn new(item: ItemStruct) -> syn::Result<Self> {
+        let mut table_name = None;
+
+        for attr in &item.attrs {
+            if let Some(path) = attr.path.get_ident() {
+                let name = path.to_string();
+                match name.as_str() {
+                    "table_name" => {
+                        table_name = Some(attr.parse_args()?);
+                    }
+                    _ => {}
+                };
+            }
+        }
+
         let mut cols = vec![];
 
         let mut primary_col = None;
@@ -87,6 +101,7 @@ impl Table {
 }
 
 impl Table {
+    #[allow(unused)]
     fn gen_struct_define(&self) -> syn::Result<TokenStream> {
         let vis = &self.vis;
         let ident = &self.ident;
@@ -303,11 +318,11 @@ impl Table {
 
 impl CodeGen for Table {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let struct_define = self.gen_struct_define()?;
+        // let struct_define = self.gen_struct_define()?;
         let impl_table = self.gen_impl_table()?;
 
         Ok(quote! {
-            #struct_define
+            // #struct_define
 
             #impl_table
         })

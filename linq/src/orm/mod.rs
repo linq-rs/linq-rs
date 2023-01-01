@@ -7,25 +7,6 @@
 //! Of course, you can also implement [`Table`] manually.
 //! The framework does not prohibit users from doing so
 //!
-//! # Examples
-//!
-//! ```
-//! #[table]
-//! // Support serde
-//! #[derive(Serialize, Deserialize)]
-//! struct User {
-//!     #[column("id_")]
-//!     #[primary(autoinc)]
-//!     id: Option<i32>,
-//!     first_name: String,
-//!     last_name: String,
-//!     #[cascade(from=col_id to=col_user_id)]
-//!     cards: Vec<Card>,
-//!     created_time: Option<DateTime>,
-//!     updated_time: Option<DateTime>,
-//! }
-//!
-//! ```
 
 mod table;
 pub use table::*;

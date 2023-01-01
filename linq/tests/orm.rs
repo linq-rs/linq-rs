@@ -6,8 +6,8 @@ use utils::*;
 
 use serde::{Deserialize, Serialize};
 
-#[table]
-#[derive(Serialize, Deserialize)]
+#[derive(ORM, Serialize, Deserialize, Default)]
+#[table_name("user_table")]
 struct User {
     #[column("id_")]
     #[primary(autoinc)]
@@ -21,8 +21,7 @@ struct User {
     updated_time: Option<DateTime>,
 }
 
-#[table]
-#[derive(Serialize, Deserialize)]
+#[derive(ORM, Serialize, Deserialize, Default)]
 struct Card {
     #[primary]
     id: usize,
@@ -49,7 +48,7 @@ async fn test_crud() -> anyhow::Result<()> {
     assert_eq!(
         driver.inserter,
         Some(rql! {
-            INSERT INTO User(first_name,last_name)
+            INSERT INTO user_table(first_name,last_name)
         })
     );
 
