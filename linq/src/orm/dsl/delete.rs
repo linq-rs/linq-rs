@@ -6,12 +6,9 @@ use crate::{
     Variant,
 };
 
-use super::{ColumnValue, Table, Where};
+use crate::orm::{ColumnValue, Table, Where};
 
-pub trait DeleteObject {
-    type Context<'a>;
-    fn delete<'a>(self) -> Self::Context<'a>;
-}
+use super::{DeleteObject, DeleteWhereCond};
 
 /// Update context struct
 pub struct DeleteObjectContext<'a, T> {
@@ -75,11 +72,6 @@ where
 
         context
     }
-}
-
-pub trait DeleteWhereCond {
-    type Context<'a>;
-    fn delete<'a>() -> Self::Context<'a>;
 }
 
 impl<T> DeleteWhereCond for T

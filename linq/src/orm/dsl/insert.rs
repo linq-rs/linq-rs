@@ -2,12 +2,9 @@ use std::marker::PhantomData;
 
 use crate::{dml::Inserter, driver::InsertSupport, Variant};
 
-use super::{ColumnValue, Table, TableEx};
+use crate::orm::{ColumnValue, Table, TableEx};
 
-pub trait Insert {
-    type Context<'a>;
-    fn insert<'a>(self) -> Self::Context<'a>;
-}
+use super::Insert;
 
 /// Update context struct
 pub struct InsertContext<'a, T> {

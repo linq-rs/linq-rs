@@ -5,15 +5,9 @@ use crate::{
     driver::{QueryIterator, SelectSupport},
 };
 
-use super::{Limit, Offset, Order, Where};
+use crate::orm::{table::*, Limit, Offset, Order, Where};
 
-use super::table::*;
-
-/// An extension trait which add select method to [`Table`] types
-pub trait Select {
-    type Context<'a>;
-    fn select<'a>() -> Self::Context<'a>;
-}
+use super::Select;
 
 pub struct SelectOne<'a, T> {
     selecter: Selecter<'a>,

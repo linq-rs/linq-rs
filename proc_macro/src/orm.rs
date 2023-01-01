@@ -232,7 +232,7 @@ impl Table {
 
             cols.push(quote! {
                 assert_eq!(values[0].col_name(), #col_name);
-                let #ident = ::linq_rs::orm::codegen::from_column_value::<#ty>(values.remove(0))?;
+                let #ident = ::linq_rs::orm::from_column_value::<#ty>(values.remove(0))?;
             });
 
             idents.push(ident);
@@ -242,7 +242,7 @@ impl Table {
 
         Ok(quote! {
             fn from_values(mut values: Vec<::linq_rs::orm::ColumnValue>) -> ::linq_rs::anyhow::Result<Self> {
-                use ::linq_rs::orm::codegen::ColumnLike;
+                use ::linq_rs::orm::ColumnLike;
 
                 assert_eq!(values.len(), #count);
 
@@ -269,7 +269,7 @@ impl Table {
 
         Ok(quote! {
             fn into_values(mut self) ->  Vec<::linq_rs::orm::ColumnValue> {
-                use ::linq_rs::orm::codegen::ColumnLike;
+                use ::linq_rs::orm::ColumnLike;
 
                 vec![#(#cols,)*]
             }

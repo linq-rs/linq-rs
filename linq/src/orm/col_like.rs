@@ -3,14 +3,38 @@ use crate::{
     DateTime, Timestamp, Variant,
 };
 
-/// Provide common trait API for [`Column`], [`OneToOne`] and [`OneToMany`]
+/// Generic orm column trait.
 ///
-/// The framework using this trait to get/set value from table structures
+/// Add serailze/deserialize ability via `LINQ` engine to
+/// rust primitive types or generated table structures.
 pub trait ColumnLike: Sized {
+    /// Convert `Self` into [`ColumnValue`]
     fn into_column_value(self, col_name: &'static str) -> ColumnValue;
+
+    /// Generate new type instance from [`ColumnValue`]
     fn from_column_value(value: ColumnValue) -> anyhow::Result<Self>;
 }
 
+/// Helper fn used by proc_macro, to reduce serialize/deserialize code generation difficulty.
+///
+/// Replace generated code
+///
+/// ```
+/// # use linq_rs::orm::{ColumnLike,ColumnValue};
+/// # let value = ColumnValue::Simple("test",linq_rs::Variant::Null);
+/// Option::<i32>::from_column_value(value);
+/// ```
+/// with generated code
+/// ```
+/// # use linq_rs::orm::{ColumnLike,ColumnValue};
+/// # let value = ColumnValue::Simple("test",linq_rs::Variant::Null);
+/// linq_rs::orm::from_column_value::<Option<i32>>(value);
+/// ```
+/// The Column
+/// [`TokenStream`](https://docs.rs/proc-macro2/latest/proc_macro2/struct.TokenStream.html)
+/// `Option<i32>` can direct return by
+/// [`syn::Field`](https://docs.rs/syn/latest/syn/struct.Field.html).
+///
 pub fn from_column_value<C>(value: ColumnValue) -> anyhow::Result<C>
 where
     C: ColumnLike,

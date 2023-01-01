@@ -6,12 +6,9 @@ use crate::{
     Variant,
 };
 
-use super::{ColumnValue, Table, TableEx, Where};
+use crate::orm::{ColumnValue, Table, TableEx, Where};
 
-pub trait Update {
-    type Context<'a>;
-    fn update<'a>(self) -> Self::Context<'a>;
-}
+use super::Update;
 
 /// Update context struct
 pub struct UpdateContext<'a, T> {
