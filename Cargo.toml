@@ -1,3 +1,3 @@
 [workspace]
-members = ["proc_macro","linq"]
+members = ["proc_macro","linq","sql_parser"]
 
