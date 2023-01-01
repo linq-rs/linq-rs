@@ -1,8 +1,5 @@
 use proc_macro2::Ident;
-use quote::quote;
 use syn::{parse::Parse, Expr, Lit, Token};
-
-use crate::gen::CodeGen;
 
 pub enum Variant {
     Ident(Ident),
@@ -23,19 +20,6 @@ impl Parse for Variant {
             Ok(Variant::Lit(input.parse()?))
         } else {
             Ok(Variant::Ident(input.parse()?))
-        }
-    }
-}
-
-impl CodeGen for Variant {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        match self {
-            Variant::Ident(ident) => {
-                let ident_str = format!("{}", ident);
-                Ok(quote!(#ident_str))
-            }
-            Variant::Expr(expr) => Ok(quote!(#expr)),
-            Variant::Lit(lit) => Ok(quote!(#lit)),
         }
     }
 }

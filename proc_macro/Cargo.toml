@@ -11,7 +11,7 @@ proc-macro2 = "^1"
 quote = "^1"
 syn = {version = "^1",features=["full"]}
 serde = {version = "1.0.150",features = ["derive"]}
-
+linq_sql_parser = {path = "../sql_parser"}
 
 [lib]
 proc-macro = true

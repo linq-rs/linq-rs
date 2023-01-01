@@ -1,44 +1,15 @@
 use std::collections::HashSet;
 
-use quote::quote;
 use syn::{parenthesized, parse::Parse, Token};
-
-use crate::gen::CodeGen;
 
 use super::{cols::Column, constraint::NamedConstraint, kw};
 
 use crate::variant::Variant;
 
 pub struct Create {
-    table_name: Variant,
-    cols: Vec<Column>,
-    constraints: Vec<NamedConstraint>,
-}
-
-impl CodeGen for Create {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let table_name = self.table_name.gen_ir_code()?;
-
-        let mut cols = vec![];
-
-        for col in &self.cols {
-            cols.push(col.gen_ir_code()?);
-        }
-
-        let mut constraints = vec![];
-
-        for c in &self.constraints {
-            constraints.push(c.gen_ir_code()?);
-        }
-
-        Ok(quote! {
-            ::linq_rs::ddl::DDL::Create(::linq_rs::ddl::Create {
-                table_name: #table_name,
-                cols: vec![#(#cols,)*],
-                constraints: vec![#(#constraints,)*],
-            })
-        })
-    }
+    pub table_name: Variant,
+    pub cols: Vec<Column>,
+    pub constraints: Vec<NamedConstraint>,
 }
 
 impl Parse for Create {

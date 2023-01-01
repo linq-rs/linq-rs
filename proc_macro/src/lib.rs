@@ -2,20 +2,18 @@ use proc_macro::TokenStream;
 use syn::parse_macro_input;
 
 mod dml;
-use dml::*;
 
 mod gen;
 use gen::*;
 
 mod ddl;
-use ddl::*;
-
-mod variant;
 
 mod orm;
 use orm::*;
 
-mod utils;
+mod variant;
+
+use linq_sql_parser::{CondExpr, DDLs, RQLs, RQL};
 
 /// Building Single-Row SQL dml statements
 #[proc_macro]

@@ -1,11 +1,9 @@
 use std::collections::HashSet;
 
 use proc_macro2::{Ident, Span};
-use quote::quote;
 use syn::parse::Parse;
 use syn::{parenthesized, Token};
 
-use crate::gen::CodeGen;
 use crate::variant::Variant;
 
 use super::kw;
@@ -13,7 +11,7 @@ use super::kw;
 pub struct NamedConstraint {
     pub span: Span,
     pub name: String,
-    constraint: Constraint,
+    pub constraint: Constraint,
 }
 
 impl Parse for NamedConstraint {
@@ -42,45 +40,7 @@ impl NamedConstraint {
     }
 }
 
-impl CodeGen for NamedConstraint {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let name = &self.name;
-        match &self.constraint {
-            Constraint::Index(cols) => {
-                let cols = cols.gen_ir_code()?;
-                Ok(quote! {
-                    ::linq_rs::ddl::NamedConstraint {
-                        name: #name,
-                        constraint: ::linq_rs::ddl::Constraint::Index(#cols),
-                    }
-                })
-            }
-            Constraint::Unique(cols) => {
-                let cols = cols.gen_ir_code()?;
-                Ok(quote! {
-                    ::linq_rs::ddl::NamedConstraint {
-                        name: #name,
-                        constraint: ::linq_rs::ddl::Constraint::Unique(#cols),
-                    }
-                })
-            }
-            Constraint::ForeignKey(cols, ref_table, ref_cols) => {
-                let cols = cols.gen_ir_code()?;
-                let ref_table = ref_table.gen_ir_code()?;
-                let ref_cols = ref_cols.gen_ir_code()?;
-
-                Ok(quote! {
-                    ::linq_rs::ddl::NamedConstraint {
-                        name: #name,
-                        constraint: ::linq_rs::ddl::Constraint::ForeignKey(#cols,#ref_table,#ref_cols),
-                    }
-                })
-            }
-        }
-    }
-}
-
-enum Constraint {
+pub enum Constraint {
     Unique(ColumnNames),
     Index(ColumnNames),
     ForeignKey(ColumnNames, Variant, ColumnNames),
@@ -118,9 +78,9 @@ impl Parse for Constraint {
     }
 }
 
-struct ColumnNames {
-    spans: Vec<Span>,
-    names: Vec<String>,
+pub struct ColumnNames {
+    pub spans: Vec<Span>,
+    pub names: Vec<String>,
 }
 
 impl ColumnNames {
@@ -161,15 +121,5 @@ impl Parse for ColumnNames {
         }
 
         Ok(ColumnNames { names: cols, spans })
-    }
-}
-
-impl CodeGen for ColumnNames {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let names = &self.names;
-
-        Ok(quote! {
-            vec![#(#names,)*]
-        })
     }
 }

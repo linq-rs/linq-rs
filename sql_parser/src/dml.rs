@@ -1,9 +1,7 @@
 mod select;
-use quote::quote;
 pub use select::*;
 
 mod kw;
-pub use kw::*;
 
 pub use super::variant::*;
 
@@ -32,8 +30,6 @@ mod delete;
 pub use delete::*;
 
 use syn::{parse::Parse, Token};
-
-use crate::CodeGen;
 
 pub enum RQL {
     Select(Select),
@@ -69,19 +65,8 @@ impl Parse for RQL {
     }
 }
 
-impl CodeGen for RQL {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        match self {
-            Self::Select(select) => return select.gen_ir_code(),
-            Self::Insert(insert) => return insert.gen_ir_code(),
-            Self::Update(update) => return update.gen_ir_code(),
-            Self::Delete(delete) => return delete.gen_ir_code(),
-        }
-    }
-}
-
 pub struct RQLs {
-    rqls: Vec<RQL>,
+    pub rqls: Vec<RQL>,
 }
 
 impl Parse for RQLs {
@@ -93,19 +78,5 @@ impl Parse for RQLs {
         }
 
         Ok(RQLs { rqls })
-    }
-}
-
-impl CodeGen for RQLs {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let mut rqls = vec![];
-
-        for rql in &self.rqls {
-            rqls.push(rql.gen_ir_code()?);
-        }
-
-        Ok(quote! {
-            (#(#rqls,)*)
-        })
     }
 }

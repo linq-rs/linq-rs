@@ -1,21 +1,24 @@
-use quote::quote;
 use syn::{parse::Parse, Token};
 
-use crate::gen::CodeGen;
-
 mod alter;
+pub use alter::*;
 mod cols;
+pub use cols::*;
 mod constraint;
+pub use constraint::*;
 mod create;
+pub use create::*;
 mod drop;
+pub use drop::*;
 mod kw;
 mod truncate;
+pub use truncate::*;
 
 pub enum DDL {
-    Create(create::Create),
-    Alter(alter::Alter),
-    Drop(drop::Drop),
-    Truncate(truncate::Truncate),
+    Create(Create),
+    Alter(Alter),
+    Drop(Drop),
+    Truncate(Truncate),
 }
 
 impl Parse for DDL {
@@ -45,19 +48,8 @@ impl Parse for DDL {
     }
 }
 
-impl CodeGen for DDL {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        match self {
-            Self::Create(create) => return create.gen_ir_code(),
-            Self::Alter(alter) => return alter.gen_ir_code(),
-            Self::Drop(drop) => return drop.gen_ir_code(),
-            Self::Truncate(truncate) => return truncate.gen_ir_code(),
-        }
-    }
-}
-
 pub struct DDLs {
-    ddls: Vec<DDL>,
+    pub ddls: Vec<DDL>,
 }
 
 impl Parse for DDLs {
@@ -69,19 +61,5 @@ impl Parse for DDLs {
         }
 
         Ok(DDLs { ddls })
-    }
-}
-
-impl CodeGen for DDLs {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let mut ddls = vec![];
-
-        for ddl in &self.ddls {
-            ddls.push(ddl.gen_ir_code()?);
-        }
-
-        Ok(quote! {
-            vec![#(#ddls,)*]
-        })
     }
 }

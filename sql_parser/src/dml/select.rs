@@ -1,16 +1,13 @@
-use quote::quote;
 use syn::{parenthesized, parse::Parse, Expr, Token};
-
-use crate::gen::CodeGen;
 
 use super::{cond, kw, From, Limit, OrderBy, Variant};
 
 pub struct Select {
-    cols: SelectColumns,
-    from: From,
-    cond: Option<cond::CondExpr>,
-    limit: Option<Limit>,
-    order: Option<OrderBy>,
+    pub cols: SelectColumns,
+    pub from: From,
+    pub cond: Option<cond::CondExpr>,
+    pub limit: Option<Limit>,
+    pub order: Option<OrderBy>,
 }
 
 impl Parse for Select {
@@ -46,45 +43,6 @@ impl Parse for Select {
             limit,
             order,
         });
-    }
-}
-
-impl CodeGen for Select {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let cols = self.cols.gen_ir_code()?;
-
-        let from = self.from.gen_ir_code()?;
-
-        let cond = if let Some(cond) = &self.cond {
-            let token_stream = cond.gen_ir_code()?;
-            quote!(Some(#token_stream))
-        } else {
-            quote!(None)
-        };
-
-        let limit = if let Some(limit) = &self.limit {
-            let token_stream = limit.gen_ir_code()?;
-            quote!(Some(#token_stream))
-        } else {
-            quote!(None)
-        };
-
-        let order = if let Some(order) = &self.order {
-            let token_stream = order.gen_ir_code()?;
-            quote!(Some(#token_stream))
-        } else {
-            quote!(None)
-        };
-
-        Ok(quote! {
-            ::linq_rs::dml::Selecter {
-                cols: #cols,
-                from: #from,
-                cond: #cond,
-                limit: #limit,
-                order_by: #order,
-            }
-        })
     }
 }
 
@@ -130,32 +88,9 @@ impl Parse for SelectColumns {
     }
 }
 
-impl CodeGen for SelectColumns {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        match self {
-            Self::All => Ok(quote! {
-                ::linq_rs::dml::SelectColumns::All
-            }),
-            Self::Expr(expr) => Ok(quote!(#expr.into())),
-
-            Self::NamedColumns(cols) => {
-                let mut token_streams = vec![];
-
-                for col in cols {
-                    token_streams.push(col.gen_ir_code()?);
-                }
-
-                Ok(quote! {
-                    ::linq_rs::dml::SelectColumns::NamedColumns(vec![#(#token_streams,)*])
-                })
-            }
-        }
-    }
-}
-
 pub struct NamedColumn {
-    name: Variant,
-    aliase: Option<Variant>,
+    pub name: Variant,
+    pub aliase: Option<Variant>,
 }
 
 impl Parse for NamedColumn {
@@ -173,25 +108,5 @@ impl Parse for NamedColumn {
         };
 
         Ok(NamedColumn { name, aliase })
-    }
-}
-
-impl CodeGen for NamedColumn {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let name = self.name.gen_ir_code()?;
-        let aliase = if let Some(aliase) = &self.aliase {
-            let stream = aliase.gen_ir_code()?;
-            quote! {
-                Some(#stream)
-            }
-        } else {
-            quote!(None)
-        };
-        Ok(quote! {
-            ::linq_rs::dml::SelectNamedColumn {
-                name: #name,
-                aliase: #aliase
-            }
-        })
     }
 }

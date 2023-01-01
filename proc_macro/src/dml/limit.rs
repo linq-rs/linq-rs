@@ -1,31 +1,8 @@
 use quote::quote;
-use syn::parse::Parse;
 
 use crate::gen::CodeGen;
 
-use super::{kw, Variant};
-
-pub struct Limit {
-    count: Variant,
-    offset: Option<Variant>,
-}
-
-impl Parse for Limit {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::LIMIT = input.parse()?;
-
-        let count: Variant = input.parse()?;
-
-        let offset = if input.lookahead1().peek(kw::OFFSET) {
-            let _: kw::OFFSET = input.parse()?;
-            Some(input.parse()?)
-        } else {
-            None
-        };
-
-        Ok(Limit { count, offset })
-    }
-}
+use linq_sql_parser::Limit;
 
 impl CodeGen for Limit {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {

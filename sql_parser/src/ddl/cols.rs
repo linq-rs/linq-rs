@@ -1,9 +1,8 @@
 use proc_macro2::{Ident, Span};
-use quote::quote;
+
 use syn::token::Paren;
 use syn::{parse::Parse, Token};
 
-use crate::gen::CodeGen;
 use crate::variant::Variant;
 
 use super::kw;
@@ -11,10 +10,10 @@ use super::kw;
 pub struct Column {
     pub span: Span,
     pub name: String,
-    col_type: IrType,
-    not_null: bool,
-    default_value: Option<Variant>,
-    primary: Option<bool>,
+    pub col_type: IrType,
+    pub not_null: bool,
+    pub default_value: Option<Variant>,
+    pub primary: Option<bool>,
 }
 
 impl Parse for Column {
@@ -89,38 +88,7 @@ impl Parse for Column {
     }
 }
 
-impl CodeGen for Column {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let name = &self.name;
-        let col_type = self.col_type.gen_ir_code()?;
-        let not_null = self.not_null;
-
-        let default_value = if let Some(default_value) = &self.default_value {
-            let default_value = default_value.gen_ir_code()?;
-            quote!(Some(#default_value))
-        } else {
-            quote!(None)
-        };
-
-        let primary = if let Some(primary) = &self.primary {
-            quote!(Some(#primary))
-        } else {
-            quote!(None)
-        };
-
-        Ok(quote! {
-            ::linq_rs::ddl::Column {
-                name: #name,
-                col_type: #col_type,
-                not_null: #not_null,
-                default_value: #default_value,
-                primary: #primary,
-            }
-        })
-    }
-}
-
-enum IrType {
+pub enum IrType {
     Int(kw::INT),
     BigInt(kw::BIGINT),
     Float(kw::FLOAT),
@@ -154,24 +122,5 @@ impl Parse for IrType {
         } else {
             Err(syn::Error::new(input.span(), "Unknown column type"))
         }
-    }
-}
-
-impl CodeGen for IrType {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let name = match self {
-            Self::Int(_) => quote!(Int),
-            Self::Float(_) => quote!(Float),
-            Self::String(_) => quote!(String),
-            Self::Bytes(_) => quote!(Bytes),
-            Self::BigInt(_) => quote!(BigInt),
-            Self::Decimal(_) => quote!(Decimal),
-            Self::DateTime(_) => quote!(DateTime),
-            Self::Timestamp(_) => quote!(Timestamp),
-        };
-
-        Ok(quote! {
-            ::linq_rs::IrType::#name
-        })
     }
 }

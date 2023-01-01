@@ -1,13 +1,10 @@
-use quote::quote;
 use syn::parse::Parse;
-
-use crate::gen::CodeGen;
 
 use super::{kw, CondExpr, Variant};
 
 pub struct Delete {
-    table_name: Variant,
-    cond: CondExpr,
+    pub table_name: Variant,
+    pub cond: CondExpr,
 }
 
 impl Parse for Delete {
@@ -23,19 +20,5 @@ impl Parse for Delete {
         let cond = input.parse()?;
 
         Ok(Delete { table_name, cond })
-    }
-}
-
-impl CodeGen for Delete {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let table_name = self.table_name.gen_ir_code()?;
-        let cond = self.cond.gen_ir_code()?;
-
-        Ok(quote! {
-            ::linq_rs::dml::Deleter {
-                table_name: #table_name,
-                cond: #cond,
-            }
-        })
     }
 }

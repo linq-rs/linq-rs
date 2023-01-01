@@ -2,7 +2,8 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use syn::{Fields, ItemStruct, LitStr, Visibility};
 
-use crate::{gen::CodeGen, utils::extract_type_from_vec};
+use crate::gen::CodeGen;
+use linq_sql_parser::extract_type_from_vec;
 
 mod col;
 use col::*;

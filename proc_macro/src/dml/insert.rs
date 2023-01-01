@@ -1,28 +1,8 @@
 use quote::quote;
-use syn::parse::Parse;
 
 use crate::gen::CodeGen;
 
-use super::{kw, Columns, Variant};
-
-pub struct Insert {
-    table_name: Variant,
-    cols: Columns,
-}
-
-impl Parse for Insert {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _: kw::INSERT = input.parse()?;
-
-        let _: kw::INTO = input.parse()?;
-
-        let table_name: Variant = input.parse()?;
-
-        let cols = input.parse()?;
-
-        Ok(Insert { table_name, cols })
-    }
-}
+use linq_sql_parser::Insert;
 
 impl CodeGen for Insert {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {

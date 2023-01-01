@@ -5,8 +5,6 @@ pub use select::*;
 mod kw;
 pub use kw::*;
 
-pub use super::variant::*;
-
 mod cond;
 pub use cond::*;
 
@@ -31,43 +29,9 @@ pub use cols::*;
 mod delete;
 pub use delete::*;
 
-use syn::{parse::Parse, Token};
-
 use crate::CodeGen;
 
-pub enum RQL {
-    Select(Select),
-    Insert(Insert),
-    Update(Update),
-    Delete(Delete),
-}
-
-impl Parse for RQL {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-
-        let result = if lookahead.peek(kw::SELECT) {
-            RQL::Select(input.parse()?)
-        } else if lookahead.peek(kw::INSERT) {
-            RQL::Insert(input.parse()?)
-        } else if lookahead.peek(kw::UPDATE) {
-            RQL::Update(input.parse()?)
-        } else if lookahead.peek(kw::DELETE) {
-            RQL::Delete(input.parse()?)
-        } else {
-            return Err(syn::Error::new(
-                input.span(),
-                "Expect select/insert/update/delete",
-            ));
-        };
-
-        if input.lookahead1().peek(Token!(;)) {
-            let _: Token!(;) = input.parse()?;
-        }
-
-        Ok(result)
-    }
-}
+use linq_sql_parser::{RQLs, RQL};
 
 impl CodeGen for RQL {
     fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
@@ -77,22 +41,6 @@ impl CodeGen for RQL {
             Self::Update(update) => return update.gen_ir_code(),
             Self::Delete(delete) => return delete.gen_ir_code(),
         }
-    }
-}
-
-pub struct RQLs {
-    rqls: Vec<RQL>,
-}
-
-impl Parse for RQLs {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let mut rqls = vec![];
-
-        while !input.is_empty() {
-            rqls.push(input.parse()?);
-        }
-
-        Ok(RQLs { rqls })
     }
 }
 

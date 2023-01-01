@@ -1,13 +1,10 @@
-use quote::quote;
 use syn::parse::Parse;
-
-use crate::gen::CodeGen;
 
 use super::{kw, Columns, Variant};
 
 pub struct Insert {
-    table_name: Variant,
-    cols: Columns,
+    pub table_name: Variant,
+    pub cols: Columns,
 }
 
 impl Parse for Insert {
@@ -21,20 +18,5 @@ impl Parse for Insert {
         let cols = input.parse()?;
 
         Ok(Insert { table_name, cols })
-    }
-}
-
-impl CodeGen for Insert {
-    fn gen_ir_code(&self) -> syn::Result<proc_macro2::TokenStream> {
-        let table_name = self.table_name.gen_ir_code()?;
-
-        let cols = self.cols.gen_ir_code()?;
-
-        Ok(quote! {
-            ::linq_rs::dml::Inserter {
-                table_name: #table_name,
-                cols: #cols,
-            }
-        })
     }
 }
