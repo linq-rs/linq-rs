@@ -1,5 +1,5 @@
 use linq_proc_macro::*;
-use linq_rs::{dml::*, parse_sql};
+use linq_rs::dml::*;
 
 #[async_std::test]
 async fn test_select() {
@@ -346,9 +346,4 @@ fn test_delete() {
             rhs: CondParam::Variant(1.into()),
         }
     );
-}
-
-#[test]
-fn test_parser() {
-    parse_sql("DELETE FROM #table_name  WHERE id = 1");
 }
