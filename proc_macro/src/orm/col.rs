@@ -94,25 +94,19 @@ pub enum ColumnAttr {
 }
 
 impl ColumnAttr {
-    pub fn new(field: &Ident, attr: &Attribute) -> syn::Result<Self> {
+    pub fn new(field: &Ident, attr: &Attribute) -> syn::Result<Option<Self>> {
         if let Some(path) = attr.path.get_ident() {
             let name = path.to_string();
-            match name.as_str() {
-                "primary" => Self::parse_primary(field, attr),
-                "column" => Self::parse_col_name(field, attr),
-                "cascade" => Self::parse_cascade(field, attr),
-                _ => {
-                    return Err(syn::Error::new(
-                        path.span(),
-                        format!("Unknown attr({})", path),
-                    ));
-                }
-            }
+            let attr = match name.as_str() {
+                "primary" => Self::parse_primary(field, attr)?,
+                "column" => Self::parse_col_name(field, attr)?,
+                "cascade" => Self::parse_cascade(field, attr)?,
+                _ => return Ok(None),
+            };
+
+            return Ok(Some(attr));
         } else {
-            return Err(syn::Error::new_spanned(
-                attr,
-                format!("Unknown attr({:?})", attr.to_token_stream().to_string()),
-            ));
+            return Ok(None);
         }
     }
 

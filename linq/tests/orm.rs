@@ -16,6 +16,7 @@ struct User {
     last_name: String,
     #[cascade(from=col_id to=col_user_id)]
     cards: Vec<Card>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     created_time: Option<DateTime>,
     updated_time: Option<DateTime>,
 }

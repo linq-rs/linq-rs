@@ -10,7 +10,6 @@ pub mod dml;
 /// This module define LINQ IR structures for SQL [`DDL`](https://www.javatpoint.com/dbms-sql-command) clause
 pub mod ddl;
 
-/// LINQ to support orm api.
 pub mod orm;
 
 pub use anyhow;

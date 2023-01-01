@@ -29,17 +29,20 @@ impl Table {
                 let mut attrs = vec![];
 
                 for attr in &field.attrs {
-                    let col_attr = ColumnAttr::new(&field.ident.clone().unwrap(), attr)?;
+                    if let Some(col_attr) = ColumnAttr::new(&field.ident.clone().unwrap(), attr)? {
+                        if let ColumnAttr::Primary(auto_inc) = col_attr {
+                            if primary_col.is_some() {
+                                return Err(syn::Error::new_spanned(
+                                    attr,
+                                    "Duplicate primary defined",
+                                ));
+                            }
 
-                    if let ColumnAttr::Primary(auto_inc) = col_attr {
-                        if primary_col.is_some() {
-                            return Err(syn::Error::new_spanned(attr, "Duplicate primary defined"));
+                            primary_col = Some((field.ident.clone().unwrap(), auto_inc));
                         }
 
-                        primary_col = Some((field.ident.clone().unwrap(), auto_inc));
+                        attrs.push(col_attr);
                     }
-
-                    attrs.push(col_attr);
                 }
 
                 cols.push(ColumnDef {
