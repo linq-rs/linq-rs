@@ -34,8 +34,8 @@ pub trait Select {
 /// Extend [`Table`](super::Table) structures to support
 /// DML [`INSERT`](https://www.w3schools.com/sql/sql_insert.asp) operation.
 pub trait Insert {
-    type Context<'a>;
-    fn insert<'a>(self) -> Self::Context<'a>;
+    type Context;
+    fn insert(self) -> Self::Context;
 }
 
 pub trait Update {

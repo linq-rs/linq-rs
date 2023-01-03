@@ -129,8 +129,6 @@ impl Table {
 
         let table_name = self.gen_table_name_fn()?;
 
-        let table_name_const = self.gen_table_name_const_fn()?;
-
         let cols = self.gen_cols_fn()?;
 
         let write = self.gen_write_fn()?;
@@ -151,8 +149,6 @@ impl Table {
             }
 
             impl #ident {
-                #table_name_const
-
                 #col_names
             }
         })
@@ -187,15 +183,17 @@ impl Table {
                         quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
                            name: #col_name,
                            ref_col: #self_type::#ref_col_name_fn(),
-                           table_name: #vec_type::table_name_const(),
-                           foreign_key_col: #vec_type::#foreign_key_col_name_fn()
+                           table_name: || #vec_type::table_name(),
+                           foreign_key_col: #vec_type::#foreign_key_col_name_fn(),
+                           table_cols: || #vec_type::cols(),
                         }))
                     } else {
                         quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
                            name: #col_name,
                            ref_col: #self_type::#ref_col_name_fn(),
-                           table_name: #col_type::table_name_const(),
-                           foreign_key_col: #col_type::#foreign_key_col_name_fn()
+                           table_name: || #col_type::table_name(),
+                           foreign_key_col: #col_type::#foreign_key_col_name_fn(),
+                           table_cols: || #col_type::cols(),
                         }))
                     }
                 }
@@ -220,20 +218,6 @@ impl Table {
 
         Ok(quote! {
             fn table_name() -> &'static str {
-                #table_name
-            }
-        })
-    }
-
-    fn gen_table_name_const_fn(&self) -> syn::Result<TokenStream> {
-        let mut table_name = LitStr::new(&self.ident.to_string(), self.ident.span());
-
-        if let Some(name) = self.table_name.as_ref() {
-            table_name = name.clone()
-        }
-
-        Ok(quote! {
-            const fn table_name_const() -> &'static str {
                 #table_name
             }
         })

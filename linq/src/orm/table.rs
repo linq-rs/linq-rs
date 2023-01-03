@@ -11,6 +11,21 @@ pub trait Table: Sized {
     fn into_values(self) -> Vec<ColumnValue>;
 }
 
+pub fn table_primary_col(cols: &'static [Column]) -> Option<(&'static str, bool)> {
+    for col in cols {
+        match col {
+            Column::Primary(name, auto_inc) => return Some((name, *auto_inc)),
+            _ => {}
+        }
+    }
+
+    return None;
+}
+/// Find col by col_name from array
+pub fn find_col<'a>(cols: &'a [Column], col_name: &'a str) -> Option<&'a Column> {
+    cols.iter().find(|c| c.col_name() == col_name)
+}
+
 pub trait TableEx {
     fn table_primary_col() -> Option<(&'static str, bool)>;
 }
@@ -20,14 +35,7 @@ where
     T: Table,
 {
     fn table_primary_col() -> Option<(&'static str, bool)> {
-        for col in Self::cols() {
-            match col {
-                Column::Primary(name, auto_inc) => return Some((name, *auto_inc)),
-                _ => {}
-            }
-        }
-
-        return None;
+        table_primary_col(Self::cols())
     }
 }
 
@@ -36,6 +44,17 @@ pub enum Column {
     Simple(&'static str),
     OneToOne(Cascade),
     OneToMany(Cascade),
+}
+
+impl Column {
+    pub fn col_name(&self) -> &'static str {
+        match self {
+            Column::Primary(name, _) => *name,
+            Column::Simple(name) => *name,
+            Self::OneToOne(cascade) => cascade.name,
+            Self::OneToMany(cascade) => cascade.name,
+        }
+    }
 }
 
 impl From<&'static str> for Column {
@@ -47,8 +66,9 @@ impl From<&'static str> for Column {
 pub struct Cascade {
     pub name: &'static str,
     pub ref_col: &'static str,
-    pub table_name: &'static str,
+    pub table_name: fn() -> &'static str,
     pub foreign_key_col: &'static str,
+    pub table_cols: fn() -> &'static [Column],
 }
 
 pub enum ColumnValue {
