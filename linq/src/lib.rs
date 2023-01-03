@@ -52,5 +52,3 @@ pub use linq_proc_macro::rql_where;
 /// }
 /// ```
 pub use linq_proc_macro::ORM;
-
-pub mod str_like;
