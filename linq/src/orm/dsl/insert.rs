@@ -31,6 +31,10 @@ impl InsertCascade {
         for value in self.values {
             match value {
                 ColumnValue::Simple(col_name, value) => {
+                    if let Variant::Null = value {
+                        continue;
+                    }
+
                     if col_name == primary_col_name && auto_inc {
                         continue;
                     }

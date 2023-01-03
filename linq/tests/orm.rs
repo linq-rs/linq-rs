@@ -31,6 +31,8 @@ struct Card {
 
 #[async_std::test]
 async fn test_crud() -> anyhow::Result<()> {
+    _ = pretty_env_logger::try_init();
+
     let mut driver = InsertDriver::default();
 
     #[allow(unused)]
@@ -46,10 +48,10 @@ async fn test_crud() -> anyhow::Result<()> {
 
     // check generated `INSERT` qir code
     assert_eq!(
-        driver.inserter,
-        Some(rql! {
+        driver.inserter[0],
+        rql! {
             INSERT INTO user_table(first_name,last_name)
-        })
+        }
     );
 
     Ok(())

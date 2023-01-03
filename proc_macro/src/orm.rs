@@ -180,7 +180,7 @@ impl Table {
                     let self_type = &self.ident;
 
                     if let Some(vec_type) = extract_type_from_vec(col_type) {
-                        quote!(::linq_rs::orm::Column::OneToOne(::linq_rs::orm::Cascade {
+                        quote!(::linq_rs::orm::Column::OneToMany(::linq_rs::orm::Cascade {
                            name: #col_name,
                            ref_col: #self_type::#ref_col_name_fn(),
                            table_name: || #vec_type::table_name(),
