@@ -81,6 +81,12 @@ pub struct SelectFrom<'a> {
     pub table_name: &'a str,
 }
 
+impl<'a> From<&'a str> for SelectFrom<'a> {
+    fn from(table_name: &'a str) -> Self {
+        Self { table_name }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct OrderBy<'a> {
     pub col_name: &'a str,

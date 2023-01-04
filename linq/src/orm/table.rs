@@ -26,6 +26,10 @@ pub fn find_col<'a>(cols: &'a [Column], col_name: &'a str) -> Option<&'a Column>
     cols.iter().find(|c| c.col_name() == col_name)
 }
 
+pub fn find_col_value<'a>(cols: &'a [ColumnValue], col_name: &'a str) -> Option<&'a ColumnValue> {
+    cols.iter().find(|c| c.col_name() == col_name)
+}
+
 pub trait TableEx {
     fn table_primary_col() -> Option<(&'static str, bool)>;
 }
@@ -89,6 +93,13 @@ impl ColumnValue {
     pub fn into_simple_value(&self) -> anyhow::Result<Variant> {
         match self {
             Self::Simple(_, value) => Ok(value.clone()),
+            _ => Err(anyhow::format_err!("Column type mismatch")),
+        }
+    }
+
+    pub fn as_simple_value(&self) -> anyhow::Result<&Variant> {
+        match self {
+            Self::Simple(_, value) => Ok(value),
             _ => Err(anyhow::format_err!("Column type mismatch")),
         }
     }

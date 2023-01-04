@@ -11,14 +11,14 @@ pub trait Where {
     fn cond(self, cond: CondExpr) -> Self::Context;
 }
 
-pub trait Limit {
-    type Context;
-    fn limit(self, count: usize) -> Self::Context;
-}
-
 pub trait Offset {
     type Context;
     fn offset(self, offset: usize) -> Self::Context;
+}
+
+pub trait Limit {
+    type Context;
+    fn limit(self, count: usize, offset: usize) -> Self::Context;
 }
 
 pub trait Order<'a> {

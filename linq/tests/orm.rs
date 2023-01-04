@@ -54,5 +54,9 @@ async fn test_crud() -> anyhow::Result<()> {
         }
     );
 
+    let mut driver = SelectDriver::default();
+
+    Vec::<User>::select().exec(&mut driver).await?;
+
     Ok(())
 }
