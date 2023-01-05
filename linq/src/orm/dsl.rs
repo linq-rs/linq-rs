@@ -39,8 +39,8 @@ pub trait Insert {
 }
 
 pub trait Update {
-    type Context<'a>;
-    fn update<'a>(self) -> Self::Context<'a>;
+    type Context;
+    fn update(self) -> Self::Context;
 }
 
 pub trait DeleteObject {
