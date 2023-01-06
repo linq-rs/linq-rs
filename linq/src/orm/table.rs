@@ -75,6 +75,7 @@ pub struct Cascade {
     pub table_cols: fn() -> &'static [Column],
 }
 
+#[derive(Debug, Clone)]
 pub enum ColumnValue {
     Simple(&'static str, Variant),
     OneToOne(&'static str, Vec<ColumnValue>),

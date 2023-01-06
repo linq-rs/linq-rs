@@ -58,5 +58,12 @@ async fn test_crud() -> anyhow::Result<()> {
 
     Vec::<User>::select().exec(&mut driver).await?;
 
+    assert_eq!(
+        driver.selecter[0],
+        rql! {
+            SELECT id_,first_name,last_name,created_time,updated_time FROM user_table;
+        }
+    );
+
     Ok(())
 }
