@@ -52,3 +52,5 @@ pub use linq_proc_macro::rql_where;
 /// }
 /// ```
 pub use linq_proc_macro::ORM;
+
+pub use async_trait::async_trait;
